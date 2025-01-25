@@ -63,7 +63,7 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
                         before_block->is_free = 1;
 
                         // Add the before block to the free list
-                        if (free_list == NULL) {
+                        if (free_list == (void *)0xFFFFFFFF) {
                             free_list = before_block;
                         } else {
                             block_header_t *last_block = free_list;
@@ -94,7 +94,7 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
                         after_block->is_free = 1;
 
                         // Add the after block to the free list
-                        if (free_list == NULL) {
+                        if (free_list == (void *)0xFFFFFFFF) {
                             free_list = after_block;
                         } else {
                             block_header_t *last_block = free_list;
