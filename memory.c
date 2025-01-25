@@ -69,15 +69,17 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
             }
         }
     }
-    block_header_t *last_block = free_list;
-    while (last_block->next != NULL) {
-        terminal_printf("Block At Address 0x%x Of Size 0x%x Points To 0x%x, %d \n",
-        last_block, last_block->size, last_block->next, last_block->is_free);
-        last_block = last_block->next;
-    }
-    terminal_printf("Block At Address 0x%x Of Size 0x%x Points To 0x%x, %d \n",
-    last_block, last_block->size, last_block->next, last_block->is_free);
 }
+
+/* Traverse a Unary Tree, or Node Tree, or something like that idk
+
+
+block_header_t *last_block = free_list;
+while (last_block->next != NULL) {
+    last_block = last_block->next;
+}
+
+*/
 
 
 // Allocate a block of memory
