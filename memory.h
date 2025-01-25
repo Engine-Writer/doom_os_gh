@@ -23,7 +23,8 @@ extern multiboot_data_t multiboot_data;
 // Simple memory region structure for heap management
 typedef struct block_header {
     uint32_t size;            // Size of the block, 4 bytes
-    uint32_t is_free;         // Wether it is free or used, 2 bytes
+    uint32_t is_free;         // Wether it is free or used, 4 bytes
+    uint32_t reserved;        // Align 8
     struct block_header *next; // Pointer to the next block in the free list, 4 bytes
 } block_header_t;
 

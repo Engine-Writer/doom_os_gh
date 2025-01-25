@@ -42,69 +42,64 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
 
         // If the region is available (Type 1), initialize it
         if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-            uint32_t base_addr = ((uint32_t)addr_hi << 32) | addr_lo;
-            uint32_t length = ((uint32_t)len_hi << 32) | len_lo;
+            uint32_t base_addr = addr_hi;
+            uint32_t length = len_hi;
 
             // Check if the region overlaps with the restricted memory (_cstart to _end)
-            if ((base_addr < (uint32_t)&_end) && (base_addr + length > (uint32_t)&_cstart)) {
-                
-                // Part before the restricted area (if any)
-                if (base_addr < (uint32_t)&_cstart) {
-                    uint32_t before_length = (uint32_t)&_cstart - base_addr;
-                    if (before_length > 0) {
-                        // Allocate a block for the part before the restricted area
-                        uint32_t before_base = base_addr;
-                        uint32_t before_len = before_length;
-
-                        // Initialize the free list for available memory before _cstart
-                        block_header_t *before_block = (block_header_t *)before_base;
-                        before_block->size = (uint32_t)before_len;
-                        before_block->next = NULL;
-                        before_block->is_free = 1;
-
-                        // Add the before block to the free list
-                        if (free_list == (void *)0xFFFFFFFF) {
-                            free_list = before_block;
-                        } else {
-                            block_header_t *last_block = free_list;
-                            while (last_block->next != NULL) {
-                                last_block = last_block->next;
-                            }
-                            last_block->next = before_block;
-                        }
+            if ((base_addr+sizeof(block_header_t) < (uint32_t)&_cstart) && (base_addr + length > (uint32_t)&_cstart) ||
+            (base_addr+sizeof(block_header_t) < (uint32_t)&_end) && (base_addr + length > (uint32_t)&_end)) {
+                if ((base_addr+sizeof(block_header_t) < (uint32_t)&_cstart) && (base_addr + length > (uint32_t)&_cstart)) {
+                    length = (uint32_t)&_cstart - base_addr;
+                    if (heap_start == 0) {
+                        heap_start = base_addr;
+                        heap_end = base_addr + length;
                     }
 
-                    // Adjust the base address and length to the part after the restricted area
-                    base_addr = (uint32_t)&_cstart;
-                    length -= before_length;
-                }
+                    // Initialize the free list for available memory regions
+                    block_header_t *current_block = (block_header_t *)base_addr;
+                    current_block->size = length - sizeof(block_header_t);  // Subtract header size
+                    current_block->next = NULL;
+                    current_block->is_free = 1;
 
-                // Part after the restricted area (if any)
-                if (base_addr + length > (uint32_t)&_end) {
-                    uint32_t after_length = (uint32_t)(base_addr + length) - (uint32_t)&_end;
-                    if (after_length > 0) {
-                        // Allocate a block for the part after the restricted area
-                        uint32_t after_base = (uint32_t)&_end;
-                        uint32_t after_len = after_length;
-
-                        // Initialize the free list for available memory after _end
-                        block_header_t *after_block = (block_header_t *)after_base;
-                        after_block->size = (uint32_t)after_len;
-                        after_block->next = NULL;
-                        after_block->is_free = 1;
-
-                        // Add the after block to the free list
-                        if (free_list == (void *)0xFFFFFFFF) {
-                            free_list = after_block;
-                        } else {
-                            block_header_t *last_block = free_list;
-                            while (last_block->next != NULL) {
-                                last_block = last_block->next;
-                            }
-                            last_block->next = after_block;
+                    // Add the current block to the free list
+                    if (free_list == (void *)0xFFFFFFFF) {
+                        free_list = current_block;
+                    } else {
+                        block_header_t *last_block = free_list;
+                        while (last_block->next != NULL) {
+                            last_block = last_block->next;
                         }
+                        last_block->next = current_block;
                     }
                 }
+                length += (uint32_t)&_end - (uint32_t)&_cstart;
+                if (len_hi > length) {
+                    length = len_hi - length;
+                    base_addr = (uint32_t)&_end;
+                    if (heap_start == 0) {
+                        heap_start = base_addr;
+                        heap_end = base_addr + length;
+                    }
+
+                    // Initialize the free list for available memory regions
+                    block_header_t *current_block = (block_header_t *)base_addr;
+                    current_block->size = length - sizeof(block_header_t);  // Subtract header size
+                    current_block->next = NULL;
+                    current_block->is_free = 1;
+
+                    // Add the current block to the free list
+                    if (free_list == (void *)0xFFFFFFFF) {
+                        free_list = current_block;
+                    } else {
+                        block_header_t *last_block = free_list;
+                        while (last_block->next != NULL) {
+                            last_block = last_block->next;
+                        }
+                        last_block->next = current_block;
+                    }
+                }
+            } else if ((base_addr < _end) && (base_addr + length > _cstart)) {
+                // dont do nun
             } else {
                 if (heap_start == 0) {
                     heap_start = (uint32_t)base_addr;
@@ -140,6 +135,16 @@ while (last_block->next != NULL) {
     last_block = last_block->next;
 }
 
+block_header_t *last_block = free_list;
+    while (last_block->next != NULL) {
+        terminal_printf("Block %x of size %x points at %x and is %d\n", 
+        last_block, last_block->size, last_block->next, last_block->is_free);
+
+        last_block = last_block->next;
+    }
+    terminal_printf("Block %x of size %x points at %x and is %d\n", 
+    last_block, last_block->size, last_block->next, last_block->is_free);
+
 */
 
 
@@ -147,10 +152,10 @@ while (last_block->next != NULL) {
 void *memalloc(size_t size) {
     block_header_t *current = free_list;
 
-    // Align to 4 bytes
-    size = (size + 3) & ~3;
+    // Align to 8 bytes
+    size = (size + 7) & ~7;
 
-    while (current) {
+    while (current->next != 0x0) {
         // Check if the block is free and large enough
         if (current->is_free && current->size >= size) {
             // If the block is much larger than the requested size, split it
@@ -166,7 +171,7 @@ void *memalloc(size_t size) {
 
             // Mark the block as allocated
             current->is_free = 0;
-            return (void *)((uint8_t *)current + sizeof(block_header_t));
+            return (void *)((uint32_t)((uint8_t *)current + sizeof(block_header_t))+1);
         }
 
         current = current->next;

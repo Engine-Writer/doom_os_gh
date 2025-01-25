@@ -72,7 +72,7 @@ void kernel_main() {
         }
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
-
+    
     // Infinite loop to keep the kernel running
     while (1) {
         // Kernel running
