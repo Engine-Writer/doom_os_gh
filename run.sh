@@ -1,0 +1,1 @@
+qemu-system-i386 -cdrom ./bin/doom_os.iso -m 64 -boot d

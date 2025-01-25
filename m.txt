@@ -1,0 +1,36 @@
+freedomuser@freedom:~/shared_folder$ sudo sh compile.sh
+kernel.c: In function 'kernel_main':
+kernel.c:25:45: warning: passing argument 1 of 'itoa' makes integer from pointer without a cast [-Wint-conversion]
+   25 |     terminal_writestring(itoa(multiboot_data->ebx_reg, dumparea, 10));
+      |                               ~~~~~~~~~~~~~~^~~~~~~~~
+      |                                             |
+      |                                             multiboot_info_t *
+In file included from terminal.h:6,
+                 from kernel.c:3:
+util.h:18:16: note: expected 'int' but argument is of type 'multiboot_info_t *'
+   18 | char* itoa(int value, char* str, int base);
+      |            ~~~~^~~~~
+kernel.c:29:50: error: invalid type argument of '->' (have 'uint32_t' {aka 'long unsigned int'})
+   29 |     uint32_t size_total = multiboot_data->eax_reg->total_size;
+      |                                                  ^~
+kernel.c:30:53: error: invalid type argument of '->' (have 'uint32_t' {aka 'long unsigned int'})
+   30 |     uint32_t reserved_data = multiboot_data->eax_reg->reserved;
+      |                                                     ^~
+i386-elf-ld: warning: ./bin/doom_os.elf has a LOAD segment with RWX permissions
+xorriso 1.5.4 : RockRidge filesystem manipulator, libburnia project.
+
+Drive current: -outdev 'stdio:./bin/doom_os.iso'
+Media current: stdio file, overwriteable
+Media status : is blank
+Media summary: 0 sessions, 0 data blocks, 0 data,  160g free
+Added to ISO image: directory '/'='/tmp/grub.TUrZoJ'
+xorriso : UPDATE :     661 files added in 1 seconds
+Added to ISO image: directory '/'='/home/freedomuser/shared_folder/iso'
+xorriso : UPDATE :     667 files added in 1 seconds
+xorriso : NOTE : Copying to System Area: 512 bytes from file '/usr/lib/grub/i386-pc/boot_hybrid.img'
+xorriso : UPDATE :  16.64% done
+ISO image produced: 9997 sectors
+Written to medium : 9997 sectors at LBA 0
+Writing to 'stdio:./bin/doom_os.iso' completed successfully.
+
+freedomuser@freedom:~/shared_folder$
