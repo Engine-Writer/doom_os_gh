@@ -26,11 +26,11 @@ INFO_REQ_TAG_START:
     dw 1
     dw 0
     dd INFO_REQ_TAG_END - INFO_REQ_TAG_START
-;    dd 4
-;    dd 5
+    dd 4
+    dd 5
     dd 6
-;    dd 7
-;    dd 8
+    dd 7
+    dd 8
 INFO_REQ_TAG_END:
 
 align 8

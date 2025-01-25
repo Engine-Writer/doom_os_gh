@@ -177,8 +177,10 @@ typedef struct {
 } __attribute__((__packed__)) multiboot_color_t;
 
 typedef struct {  
-    multiboot_uint64_t addr;
-    multiboot_uint64_t len;
+    multiboot_uint32_t addr_hi;
+    multiboot_uint32_t addr_low;
+    multiboot_uint32_t len_hi;
+    multiboot_uint32_t len_low;
 #define MULTIBOOT_MEMORY_AVAILABLE		1
 #define MULTIBOOT_MEMORY_RESERVED		2
 #define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3

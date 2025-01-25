@@ -6,6 +6,8 @@
 #include "gdt.h"
 #include "io.h"
 
+
+/*
 void loop_tags(multiboot_info_t *addr) {
     multiboot_tag_t *tag;
     unsigned size;
@@ -148,6 +150,8 @@ void loop_tags(multiboot_info_t *addr) {
     tag = (multiboot_tag_t *)((multiboot_uint8_t *)tag + ((tag->size + 7) & ~7));
     terminal_printf("Total mbi size 0x%x\n", (unsigned)tag - (uint32_t)addr);
 }
+*/
+
 
 // Kernel entry point (called by the bootloader)
 void kernel_main() {
@@ -190,10 +194,26 @@ void kernel_main() {
         terminal_printf("TAG TYPE %d WITH SIZE %x AND ADDRESS %x\n", tag->type, tag->size, tag);
         if (tag->type == 0)
             break;
-        switch (tag->type) {
-            // ...
+                switch (tag->type) {
+            case MULTIBOOT_TAG_TYPE_MMAP: {
+                // Memory map tag found, parse it
+                multiboot_tag_mmap_t *mmap_tag = (multiboot_tag_mmap_t *)tag;
+
+                // Parse each memory region in the memory map
+                uint32_t entry = (uint32_t)mmap_tag+16;
+                uint32_t entry_count = mmap_tag->size / mmap_tag->entry_size;
+                terminal_printf("Found memory map: %x of size %d\n", mmap_tag, mmap_tag->size);
+
+                for (uint32_t i = 0; i < entry_count; i++) {
+                    multiboot_mmap_entry_t *entry_x = (multiboot_mmap_entry_t *)( entry+(i*(mmap_tag->entry_size)) );
+                    terminal_printf("Entry %d: Base=0x%x, Length=0x%x, Type=%d\n", i, 
+                    entry_x->addr_hi, entry_x->len_hi, entry_x->type);
+                }
+                break;
+            }
             default: break;
         }
+
         tag = (multiboot_tag_t *) ((uint8_t *) tag + ((tag->size + 7) & ~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
 
