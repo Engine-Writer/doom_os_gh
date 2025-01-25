@@ -1,0 +1,78 @@
+freedomuser@freedom:~/shared_folder$ sudo python3 make.py all
+Running: nasm -f elf32 ./gdt.asm -o ./bin/gdt.asm.o
+Running: nasm -f elf32 ./grub_entry.asm -o ./bin/grub_entry.asm.o
+Running: i386-elf-gcc -ffreestanding -m32 -g -c ./gdt.c -o ./bin/gdt.c.o
+Running: i386-elf-gcc -ffreestanding -m32 -g -c ./kernel.c -o ./bin/kernel.c.o
+Running: i386-elf-gcc -ffreestanding -m32 -g -c ./memory.c -o ./bin/memory.c.o
+Running: i386-elf-gcc -ffreestanding -m32 -g -c ./terminal.c -o ./bin/terminal.c.o
+Running: i386-elf-gcc -ffreestanding -m32 -g -c ./util.c -o ./bin/util.c.o
+Running: i386-elf-ld -T./linker.ld -o ./bin/doom_os.elf ./bin/gdt.asm.o ./bin/gdt.c.o ./bin/gdt.o ./bin/grub_entry.asm.o ./bin/grub_entry.o ./bin/kernel.c.o ./bin/kernel.o ./bin/memory.c.o ./bin/memory.o ./bin/terminal.c.o ./bin/terminal.o ./bin/util.c.o ./bin/util.o ./bin/asm/grub_entry.o ./bin/c/kernel.o
+i386-elf-ld: ./bin/gdt.o:/home/freedomuser/shared_folder/./gdt.c:69: multiple definition of `g_GDT'; ./bin/gdt.c.o:/home/freedomuser/shared_folder/./gdt.c:69: first defined here
+i386-elf-ld: ./bin/gdt.o:/home/freedomuser/shared_folder/./gdt.c:87: multiple definition of `g_GDTDescriptor'; ./bin/gdt.c.o:/home/freedomuser/shared_folder/./gdt.c:87: first defined here
+i386-elf-ld: ./bin/gdt.o: in function `i686_GDT_Initialize':
+/home/freedomuser/shared_folder/./gdt.c:92: multiple definition of `i686_GDT_Initialize'; ./bin/gdt.c.o:/home/freedomuser/shared_folder/./gdt.c:92: first defined here
+i386-elf-ld: ./bin/grub_entry.o: in function `_start':
+./grub_entry.asm:(.text+0x0): multiple definition of `_start'; ./bin/grub_entry.asm.o:./grub_entry.asm:(.text+0x0): first defined here
+i386-elf-ld: ./bin/grub_entry.o: in function `multiboot_data':
+./grub_entry.asm:(.bss+0x0): multiple definition of `multiboot_data'; ./bin/grub_entry.asm.o:./grub_entry.asm:(.bss+0x0): first defined here
+i386-elf-ld: ./bin/kernel.o: in function `kernel_main':
+/home/freedomuser/shared_folder/./kernel.c:11: multiple definition of `kernel_main'; ./bin/kernel.c.o:/home/freedomuser/shared_folder/./kernel.c:11: first defined here
+i386-elf-ld: ./bin/memory.o:/home/freedomuser/shared_folder/./memory.c:6: multiple definition of `heap_start'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:6: first defined here
+i386-elf-ld: ./bin/memory.o:/home/freedomuser/shared_folder/./memory.c:7: multiple definition of `heap_end'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:7: first defined here
+i386-elf-ld: ./bin/memory.o:/home/freedomuser/shared_folder/./memory.c:10: multiple definition of `total_mem'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:10: first defined here
+i386-elf-ld: ./bin/memory.o: in function `memset':
+/home/freedomuser/shared_folder/./memory.c:13: multiple definition of `memset'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:13: first defined here
+i386-elf-ld: ./bin/memory.o: in function `memcpy':
+/home/freedomuser/shared_folder/./memory.c:22: multiple definition of `memcpy'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:22: first defined here
+i386-elf-ld: ./bin/memory.o: in function `memory_initialize':
+/home/freedomuser/shared_folder/./memory.c:31: multiple definition of `memory_initialize'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:31: first defined here
+i386-elf-ld: ./bin/memory.o: in function `memalloc':
+/home/freedomuser/shared_folder/./memory.c:152: multiple definition of `memalloc'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:152: first defined here
+i386-elf-ld: ./bin/memory.o: in function `memfree':
+/home/freedomuser/shared_folder/./memory.c:191: multiple definition of `memfree'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:191: first defined here
+i386-elf-ld: ./bin/memory.o: in function `get_total_memory':
+/home/freedomuser/shared_folder/./memory.c:209: multiple definition of `get_total_memory'; ./bin/memory.c.o:/home/freedomuser/shared_folder/./memory.c:209: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_initialize':
+/home/freedomuser/shared_folder/./terminal.c:20: multiple definition of `terminal_initialize'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:20: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_setcolor':
+/home/freedomuser/shared_folder/./terminal.c:36: multiple definition of `terminal_setcolor'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:36: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_putentryat':
+/home/freedomuser/shared_folder/./terminal.c:40: multiple definition of `terminal_putentryat'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:40: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_scroll':
+/home/freedomuser/shared_folder/./terminal.c:48: multiple definition of `terminal_scroll'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:48: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_putchar':
+/home/freedomuser/shared_folder/./terminal.c:62: multiple definition of `terminal_putchar'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:62: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_write':
+/home/freedomuser/shared_folder/./terminal.c:83: multiple definition of `terminal_write'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:83: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_writestring':
+/home/freedomuser/shared_folder/./terminal.c:89: multiple definition of `terminal_writestring'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:89: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_clear':
+/home/freedomuser/shared_folder/./terminal.c:95: multiple definition of `terminal_clear'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:95: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_set_cursor_position':
+/home/freedomuser/shared_folder/./terminal.c:104: multiple definition of `terminal_set_cursor_position'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:104: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_get_cursor_position':
+/home/freedomuser/shared_folder/./terminal.c:116: multiple definition of `terminal_get_cursor_position'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:116: first defined here
+i386-elf-ld: ./bin/terminal.o: in function `terminal_printf':
+/home/freedomuser/shared_folder/./terminal.c:141: multiple definition of `terminal_printf'; ./bin/terminal.c.o:/home/freedomuser/shared_folder/./terminal.c:141: first defined here
+i386-elf-ld: ./bin/util.o: in function `itoa':
+/home/freedomuser/shared_folder/./util.c:4: multiple definition of `itoa'; ./bin/util.c.o:/home/freedomuser/shared_folder/./util.c:4: first defined here
+i386-elf-ld: ./bin/asm/grub_entry.o: in function `_start':
+grub_entry.asm:(.text+0x0): multiple definition of `_start'; ./bin/grub_entry.asm.o:./grub_entry.asm:(.text+0x0): first defined here
+i386-elf-ld: ./bin/asm/grub_entry.o: in function `multiboot_data':
+grub_entry.asm:(.bss+0x0): multiple definition of `multiboot_data'; ./bin/grub_entry.asm.o:./grub_entry.asm:(.bss+0x0): first defined here
+i386-elf-ld: ./bin/c/kernel.o: in function `kernel_main':
+/home/freedomuser/shared_folder/kernel.c:11: multiple definition of `kernel_main'; ./bin/kernel.c.o:/home/freedomuser/shared_folder/./kernel.c:11: first defined here
+i386-elf-ld: warning: ./bin/doom_os.elf has a LOAD segment with RWX permissions
+Traceback (most recent call last):
+  File "/home/freedomuser/shared_folder/make.py", line 103, in <module>
+    main()
+  File "/home/freedomuser/shared_folder/make.py", line 91, in main
+    link()
+  File "/home/freedomuser/shared_folder/make.py", line 61, in link
+    run_command([LD, LDFLAGS, '-o', os.path.join(OBJ_DIR, 'doom_os.elf')] + obj_files)
+  File "/home/freedomuser/shared_folder/make.py", line 29, in run_command
+    subprocess.check_call(command, env=env)
+  File "/usr/lib/python3.11/subprocess.py", line 413, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['i386-elf-ld', '-T./linker.ld', '-o', './bin/doom_os.elf', './bin/gdt.asm.o', './bin/gdt.c.o', './bin/gdt.o', './bin/grub_entry.asm.o', './bin/grub_entry.o', './bin/kernel.c.o', './bin/kernel.o', './bin/memory.c.o', './bin/memory.o', './bin/terminal.c.o', './bin/terminal.o', './bin/util.c.o', './bin/util.o', './bin/asm/grub_entry.o', './bin/c/kernel.o']' returned non-zero exit status 1.
+freedomuser@freedom:~/shared_folder$ 

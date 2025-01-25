@@ -1,19 +1,21 @@
-freedomuser@freedom:~/shared_folder$ sudo sh compile.sh
-memory.c:6:1: warning: data definition has no type or storage class
-    6 | heap_start = 0;
-      | ^~~~~~~~~~
-memory.c:6:1: warning: type defaults to 'int' in declaration of 'heap_start' [-Wimplicit-int]
-memory.c:6:1: error: conflicting types for 'heap_start'; have 'int'
-In file included from memory.c:2:
-memory.h:10:17: note: previous declaration of 'heap_start' with type 'uint32_t' {aka 'long unsigned int'}
-   10 | extern uint32_t heap_start;
-      |                 ^~~~~~~~~~
-memory.c:7:1: warning: data definition has no type or storage class
-    7 | heap_end = 0;
-      | ^~~~~~~~
-memory.c:7:1: warning: type defaults to 'int' in declaration of 'heap_end' [-Wimplicit-int]
-memory.c:7:1: error: conflicting types for 'heap_end'; have 'int'
-memory.h:11:17: note: previous declaration of 'heap_end' with type 'uint32_t' {aka 'long unsigned int'}
-   11 | extern uint32_t heap_end;
-      |                 ^~~~~~~~
-i386-elf-ld: warning: ./bin/doom_os.elf has a LOAD segment with RWX permissions
+sudo python3 make.py all
+Running: nasm -f elf32 /home/freedomuser/shared_folder/asm/grub_entry.asm
+ -o /home/freedomuser/shared_folder/asm/gdt.asm.o                        Running: nasm -f elf32 /home/freedomuser/shared_folder/asm/gdt.asm -o /ho
+me/freedomuser/shared_folder/asm/grub_entry.asm.o                        Running: i386-elf-gcc -ffreestanding -m32 -g -I./include -c /home/freedom
+user/shared_folder/src/core/kernel.c -o /home/freedomuser/shared_folder/src/core/gdt.c.o                                                          /home/freedomuser/shared_folder/src/core/kernel.c:2:10: fatal error: incl
+ude/multiboot2.h: No such file or directory                                  2 | #include "include/multiboot2.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+Traceback (most recent call last):
+  File "/home/freedomuser/shared_folder/make.py", line 148, in <module>
+    main()
+  File "/home/freedomuser/shared_folder/make.py", line 131, in main
+    build_c()
+  File "/home/freedomuser/shared_folder/make.py", line 79, in build_c
+    run_command([CC] + CFLAGS + ['-c', os.path.join(SRC_DIR, c_file), '-o
+', obj_file])                                                              File "/home/freedomuser/shared_folder/make.py", line 69, in run_command
+    subprocess.check_call(command, env=env)
+  File "/usr/lib/python3.11/subprocess.py", line 413, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['i386-elf-gcc', '-ffreestanding'
+, '-m32', '-g', '-I./include', '-c', '/home/freedomuser/shared_folder/src/core/kernel.c', '-o', '/home/freedomuser/shared_folder/src/core/gdt.c.o']' returned non-zero exit status 1.                                      

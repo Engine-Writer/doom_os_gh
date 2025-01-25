@@ -5,6 +5,8 @@
         "stddef.h": "c",
         "multiboot2.h": "c",
         "util.h": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "terminal.h": "c",
+        "gdt.h": "c"
     }
 }

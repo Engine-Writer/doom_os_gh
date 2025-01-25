@@ -1,0 +1,148 @@
+import os
+import subprocess
+import sys
+
+# Directories
+SRC_DIR = os.path.abspath('./')
+OBJ_DIR = os.path.abspath('./bin')
+ISO_SCRIPT = os.path.abspath('./scripts/makeiso.sh')
+RUN_SCRIPT = os.path.abspath('./scripts/run.sh')
+
+# Tools
+CC = 'i386-elf-gcc'
+LD = 'i386-elf-ld'
+ASM = 'nasm'
+
+# Compiler flags
+CFLAGS = ['-ffreestanding', '-m32', '-g', '-I', '/home/freedomuser/shared_folder/include']  # Now a list of separate flags
+ASFLAGS = '-f elf32'
+LDFLAGS = '-T/home/freedomuser/shared_folder/linker.ld'
+
+# Source files
+ASM_SOURCES = []
+C_SOURCES = []
+
+# Object files for asm and c separately
+ASM_OBJECTS = [os.path.join(OBJ_DIR, f.replace('.asm', '.asm.o')) for f in ASM_SOURCES]
+C_OBJECTS = [os.path.join(OBJ_DIR, f.replace('.c', '.c.o')) for f in C_SOURCES]
+
+# Target binary
+TARGET = os.path.join(OBJ_DIR, 'doom_os.elf')
+
+# Path for i386-elf-gcc tools
+I386_ELF_GCC_PATH = '/usr/local/i386elfgcc/bin'
+
+def move_element(lst:list[str], value:str, index:int):
+    """Moves element x to position y in the list, if it exists."""
+    try:
+        # Find the index of element x
+        index_x = lst.index(value)
+        
+        # Remove the element from its current position
+        lst.pop(index_x)
+        
+        # Insert the element at the desired position y
+        lst.insert(index, value)
+    except ValueError:
+        print(f"Element {value} not found in the list.")
+    except IndexError:
+        print(f"Invalid position {index}. List size: {len(lst)}")
+
+
+def get_sources() -> list[str]:
+    """Recursively get all source files (.asm and .c)"""
+    asm_files = []
+    c_files = []
+    for root, _, files in os.walk(SRC_DIR):
+        for file in files:
+            if file.endswith('.asm'):
+                asm_files.append(os.path.abspath(os.path.join(root, file)))
+            elif file.endswith('.c'):
+                c_files.append(os.path.abspath(os.path.join(root, file)))
+    return asm_files, c_files
+
+def run_command(command):
+    """Helper function to run a shell command with modified environment"""
+    print(f"Running: {' '.join(command)}")
+    env = os.environ.copy()  # Copy the current environment
+    env['PATH'] = f"{env['PATH']}:{I386_ELF_GCC_PATH}"  # Add custom path
+    subprocess.check_call(command, env=env)
+
+def build_asm():
+    """Compile the ASM files"""
+    for asm_file, obj_file in zip(ASM_SOURCES, ASM_OBJECTS):
+        run_command([ASM, ASFLAGS, os.path.join(SRC_DIR, asm_file), '-o', obj_file])
+
+def build_c():
+    """Compile the C files"""
+    for c_file, obj_file in zip(C_SOURCES, C_OBJECTS):
+        run_command([CC] + CFLAGS + ['-c', os.path.join(SRC_DIR, c_file), '-o', obj_file])
+
+def link():
+    """Link the object files into a final binary"""
+    run_command([LD, LDFLAGS, '-o', TARGET] + ASM_OBJECTS + C_OBJECTS)
+
+def create_iso():
+    """Create the ISO image"""
+    run_command(["sh", ISO_SCRIPT])
+
+def run_os():
+    """Run the OS with the provided script"""
+    run_command(["sh", RUN_SCRIPT])
+
+def clean():
+    """Clean up the build directory"""
+    for obj_file in ASM_OBJECTS + C_OBJECTS:
+        os.remove(obj_file)
+    if os.path.exists(TARGET):
+        os.remove(TARGET)
+
+
+def main():
+    global ASM_SOURCES, C_SOURCES, ASM_OBJECTS, C_OBJECTS
+    if len(sys.argv) < 2:
+        print("Usage: make.py [all|iso|run|clean]")
+        sys.exit(1)
+
+    command = sys.argv[1]
+    
+    # Get all source files (in subdirectories)
+    asm_sources, c_sources = get_sources()
+
+    # Create object file paths based on source files
+    ASM_SOURCES = [_ for _ in asm_sources]
+    C_SOURCES = [_ for _ in c_sources]
+
+    move_element(ASM_SOURCES, os.path.abspath("./asm/grub_entry.asm"), 0)
+    move_element(C_SOURCES, os.path.abspath("./src/core/kernel.c"), 0)
+            
+    ASM_OBJECTS = [os.path.join(OBJ_DIR, f.split('/')[-1].replace('.asm', '.asm.o')) for f in ASM_SOURCES]
+    C_OBJECTS = [os.path.join(OBJ_DIR, f.split('/')[-1].replace('.c', '.c.o')) for f in C_SOURCES]
+
+    with open("log.log", 'w') as log:
+        log.write(str(ASM_SOURCES))
+        log.write(str(ASM_OBJECTS))
+        log.write(str(C_SOURCES))
+        log.write(str(C_OBJECTS))
+
+    if command == 'all':
+        os.makedirs(OBJ_DIR, exist_ok=True)
+        build_asm()
+        build_c()
+        link()
+    elif command == 'iso':
+        create_iso()
+    elif command == 'run':
+        run_os()
+    elif command == 'clean':
+        clean()
+    elif command == 'help' or command == '-help' or command == '--help' \
+    or command == 'h' or command == '-h' or command == '--h':
+        print("Usage: make.py [all|iso|run|clean]")
+    else:
+        print("Unknown command:", command)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
