@@ -40,55 +40,72 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
         uint32_t len_hi = entry_x->len_hi;
         uint32_t type = entry_x->type;
 
-        // If the region is available, initialize it
+        // If the region is available (Type 1), initialize it
         if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-            uint32_t base_addr = addr_hi;
-            uint32_t length = len_hi;
-            
+            uint32_t base_addr = ((uint32_t)addr_hi << 32) | addr_lo;
+            uint32_t length = ((uint32_t)len_hi << 32) | len_lo;
+
             // Check if the region overlaps with the restricted memory (_cstart to _end)
-            if ((base_addr >= (uint32_t)&_cstart && base_addr < (uint32_t)&_end) || 
-                (base_addr + length > (uint32_t)&_cstart && base_addr + length <= (uint32_t)&_end)) {
+            if ((base_addr < (uint32_t)&_end) && (base_addr + length > (uint32_t)&_cstart)) {
                 
-                // If the region starts before _cstart, crop the part before the restricted area
+                // Part before the restricted area (if any)
                 if (base_addr < (uint32_t)&_cstart) {
-                    uint32_t new_length = (uint32_t)&_cstart - base_addr;
-                    base_addr += new_length;
-                    length -= new_length;
-                }
+                    uint32_t before_length = (uint32_t)&_cstart - base_addr;
+                    if (before_length > 0) {
+                        // Allocate a block for the part before the restricted area
+                        uint32_t before_base = base_addr;
+                        uint32_t before_len = before_length;
 
-                // If the region ends after _end, crop the part after the restricted area
-                if (base_addr + length > (uint32_t)&_end) {
-                    length = (base_addr + length) - (uint32_t)&_end;
-                }
+                        // Initialize the free list for available memory before _cstart
+                        block_header_t *before_block = (block_header_t *)before_base;
+                        before_block->size = (uint32_t)before_len;
+                        before_block->next = NULL;
+                        before_block->is_free = 1;
 
-                // If after cropping the region is valid, initialize it
-                if (length > 0) {
-                    // Initialize the remaining valid region
-                    // Do the same process for handling the free list, memory blocks, etc.
-                    if (heap_start == 0) {
-                        heap_start = (uint32_t)base_addr;
-                        heap_end = (uint32_t)(base_addr + length);
+                        // Add the before block to the free list
+                        if (free_list == NULL) {
+                            free_list = before_block;
+                        } else {
+                            block_header_t *last_block = free_list;
+                            while (last_block->next != NULL) {
+                                last_block = last_block->next;
+                            }
+                            last_block->next = before_block;
+                        }
                     }
 
-                    // Initialize the free list for available memory regions
-                    block_header_t *current_block = (block_header_t *)base_addr;
-                    current_block->size = (uint32_t)length;
-                    current_block->next = NULL;
+                    // Adjust the base address and length to the part after the restricted area
+                    base_addr = (uint32_t)&_cstart;
+                    length -= before_length;
+                }
 
-                    // Add the current block to the free list
-                    if (free_list == NULL) {
-                        free_list = current_block;
-                    } else {
-                        block_header_t *last_block = free_list;
-                        while (last_block->next != NULL) {
-                            last_block = last_block->next;
+                // Part after the restricted area (if any)
+                if (base_addr + length > (uint32_t)&_end) {
+                    uint32_t after_length = (uint32_t)(base_addr + length) - (uint32_t)&_end;
+                    if (after_length > 0) {
+                        // Allocate a block for the part after the restricted area
+                        uint32_t after_base = (uint32_t)&_end;
+                        uint32_t after_len = after_length;
+
+                        // Initialize the free list for available memory after _end
+                        block_header_t *after_block = (block_header_t *)after_base;
+                        after_block->size = (uint32_t)after_len;
+                        after_block->next = NULL;
+                        after_block->is_free = 1;
+
+                        // Add the after block to the free list
+                        if (free_list == NULL) {
+                            free_list = after_block;
+                        } else {
+                            block_header_t *last_block = free_list;
+                            while (last_block->next != NULL) {
+                                last_block = last_block->next;
+                            }
+                            last_block->next = after_block;
                         }
-                        last_block->next = current_block;
                     }
                 }
             } else {
-
-            // If this is the first available memory region, initialize heap_start and heap_end
                 if (heap_start == 0) {
                     heap_start = (uint32_t)base_addr;
                     heap_end = (uint32_t)(base_addr + length);
