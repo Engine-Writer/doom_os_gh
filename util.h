@@ -15,6 +15,6 @@ static inline uint8_Vector2 make_uint8_vector2(uint8_t x, uint8_t y) {
 }
 
 
-char* itoa(int value, char* str, int base);
+char* itoa(uint32_t value, char* str, uint32_t base);
 
 #endif

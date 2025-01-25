@@ -4,6 +4,7 @@
         "types.h": "c",
         "stddef.h": "c",
         "multiboot2.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "memory.h": "c"
     }
 }

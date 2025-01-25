@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "terminal.h"
+#include "memory.h"
 #include "util.h"
 #include "io.h"
 
@@ -140,7 +141,7 @@ uint8_Vector2 terminal_get_cursor_position() {
 void terminal_printf(const char *format, ...) {
     char **arg = (char **) &format;
     uint32_t c;
-    char buf[20]; // Buffer for numbers converted to strings
+    char buf[64]; // Buffer for numbers converted to strings
 
     arg++; // Skip the format string itself
 
@@ -148,6 +149,7 @@ void terminal_printf(const char *format, ...) {
         if (c != '%') {
             terminal_putchar(c); // Print regular characters
         } else {
+            memset(buf, 0, sizeof(buf));
             char *p, *p2;
             int pad0 = 0, pad = 0;
 

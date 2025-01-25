@@ -11,6 +11,10 @@ SECTIONS
         *(.text)
     }
 
+    .rodata ALIGN(16) : {
+        *(.rodata)
+    }
+
     .data ALIGN(16) : {
         *(.data)                /* Initialized data */
     }

@@ -1,7 +1,7 @@
 #include "util.h"
 
 // Function to convert an integer to a string
-char* itoa(int value, char* str, int base) {
+char* itoa(uint32_t value, char* str, uint32_t base) {
     int i = 0;
     int isNegative = 0;
 
