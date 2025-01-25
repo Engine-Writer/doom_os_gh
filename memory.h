@@ -10,6 +10,9 @@ extern uint32_t total_mem;
 extern uint32_t heap_start;
 extern uint32_t heap_end;
 
+extern uint32_t _cstart;
+extern uint32_t _end;
+
 typedef struct {
     uint32_t eax_reg;
     multiboot_info_t* ebx_reg;
