@@ -206,6 +206,55 @@ void memfree(void *ptr) {
     }
 }
 
+void *memrealloc(void *ptr, size_t new_size) {
+    new_size = (new_size + 7) & ~7;
+    if (new_size == 0) {
+        if (ptr != (void *)0xFFFFFFFF) {
+            memfree(ptr);
+        }
+        return (void *)0xFFFFFFFF; // Return valid NULL equivalent
+    }
+    if (ptr == (void *)0xFFFFFFFF) {
+        return memalloc(new_size);
+    }
+
+    block_header_t *block = (block_header_t *)((uint8_t *)ptr - sizeof(block_header_t));
+
+    // Check if the current block is large enough to satisfy the request
+    if (block->size >= new_size) {
+        return ptr; // No need to move; current block is sufficient
+    }
+
+    // Allocate a new block
+    void *new_ptr = memalloc(new_size);
+    if (new_ptr == (void *)0xFFFFFFFF) {
+        return (void *)0xFFFFFFFF; // Allocation failed
+    }
+
+    // Copy data from the old block to the new block
+    memcpy(new_ptr, ptr, block->size);
+
+    // Free the old block
+    memfree(ptr);
+
+    return new_ptr;
+}
+
+// Allocate and zero-initialize memory (calloc)
+void *memcalloc(size_t num, size_t size) {
+    size_t total_size = num * size;
+
+    // Allocate the memory
+    void *ptr = memalloc(total_size);
+    if (ptr == (void *)0xFFFFFFFF) {
+        return (void *)0xFFFFFFFF; // Allocation failed
+    }
+
+    // Zero-initialize the memory
+    memset(ptr, 0, total_size);
+    return ptr;
+}
+
 uint32_t get_total_memory() {
     return total_mem;
 }

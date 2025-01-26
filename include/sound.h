@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef SOUND_H
+#define SOUND_H
 #include "irq.h"
 #include "pic.h"
 #include "io.h"
@@ -9,4 +9,4 @@
 void sound_play_frequency(uint32_t frequency);
 void sound_stop();
 
-#endif
+#endif // SOUND_H

@@ -4,11 +4,10 @@ ENTRY(_start)
 SECTIONS
 {
     /* Place the Multiboot2 header at an early address within the first 32 KB */
-    . = 0x002000;               /* Offset for Multiboot2 header */
+    . = 0x007000;               /* Offset for Multiboot2 header */
 
     _cstart = .;
     .text ALIGN(16) : {
-        KEEP(*(.multiboot2))
         *(.text)
     }
 

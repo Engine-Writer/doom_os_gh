@@ -178,8 +178,7 @@ uint8_t keyboard_enable_scanning();
 uint8_t keyboard_reset();
 uint8_t keyboard_identify();
 
-void keyboard_hi(Registers *regs);
-void keyboard_handler(uint8_t scancode);
-
+void keyboard_handler(Registers *regs);
+void keyboard_init();
 
 #endif // KEYBOARD_H

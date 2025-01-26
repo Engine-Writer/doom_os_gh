@@ -388,4 +388,4 @@ typedef struct {
 // External variable for the multiboot info, defined by the bootloader
 //extern multiboot_info_t *multiboot_info;
 
-#endif /* ! MULTIBOOT_HEADER */
+#endif // MULTIBOOT_H

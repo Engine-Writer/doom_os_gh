@@ -5,6 +5,7 @@
 #include "terminal.h"
 #include "memory.h"
 #include "timer.h"
+#include "sound.h"
 #include "util.h"
 #include "gdt.h"
 #include "hal.h"
@@ -42,16 +43,15 @@ void kernel_main() {
 
     terminal_writestring("Welcome to DOOM OS! \n");
     terminal_set_cursor_position(make_uint8_vector2(0, 0));
-
-    uint32_t i = 125;
     
-
+    uint32_t ticks = 0;
     
     // Infinite loop to keep the kernel running
     while (true) {
-        if (timer_ticks > i) {
-            i += 125;
-            terminal_printf("A second has passed! \n");
+        sound_play_frequency(200);
+        ticks = timer_ticks;
+        while (timer_ticks-ticks > 10) {
+            iowait();
         }
     }
 }

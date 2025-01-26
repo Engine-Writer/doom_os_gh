@@ -127,13 +127,9 @@ uint8_t keyboard_identify() {
 }
 
 // Keyboard interrupt handler
-void keyboard_hi(Registers *regs) {
-    uint8_t scan_code = keyboard_read_response();  // Read the scan code from the keyboard input
-    keyboard_handler(scan_code);
-}
+void keyboard_handler(Registers *regs) {
+    uint8_t scancode = keyboard_read_response();
 
-// Keyboard handler
-void keyboard_handler(uint8_t scancode) {
     // Handle modifier keys
     if (KEY_SCANCODE(scancode) == KEY_LALT || KEY_SCANCODE(scancode) == KEY_RALT) {
         keyboard.mods = BIT_SET(keyboard.mods, HIBIT(KEY_MOD_ALT), KEY_IS_PRESS(scancode));
@@ -154,12 +150,17 @@ void keyboard_handler(uint8_t scancode) {
     // Update key state
     keyboard.keys[(uint8_t)(scancode & 0x7F)] = KEY_IS_PRESS(scancode);
     keyboard.chars[KEY_CHAR(scancode)] = KEY_IS_PRESS(scancode);
-
+/*
     if (keyboard.chars[KEY_CHAR(scancode)] && !was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
+        // terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
     } else if (!keyboard.chars[KEY_CHAR(scancode)] && was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
+        // terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
     }
+    */
+}
+
+void keyboard_init() {
+    IRQ_RegisterHandler(1, (IRQHandler)keyboard_handler);
 }

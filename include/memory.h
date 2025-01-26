@@ -42,4 +42,4 @@ void *memcpy(void *dest, const void *src, size_t n);
 // Function to calculate total system memory
 uint32_t get_total_memory();
 
-#endif
+#endif // MEMORY_H

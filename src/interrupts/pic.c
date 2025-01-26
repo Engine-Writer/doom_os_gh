@@ -87,6 +87,7 @@ void PIC_SendEndOfInterrupt(int irq)
 {
     if (irq >= 8)
         outb(PIC2_COMMAND_PORT, PIC_CMD_END_OF_INTERRUPT);
+        iowait();
     outb(PIC1_COMMAND_PORT, PIC_CMD_END_OF_INTERRUPT);
 }
 
