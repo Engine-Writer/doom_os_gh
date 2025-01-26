@@ -13,7 +13,8 @@
         "irq.h": "c",
         "hal.h": "c",
         "isr.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "ctype.h": "c"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "enabled"
 }

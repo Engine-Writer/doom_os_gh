@@ -139,7 +139,7 @@ uint8_Vector2 terminal_get_cursor_position() {
 
 // Hipity Hopity Your code is now my property
 void terminal_printf(const char *format, ...) {
-    char **arg = (char **) &format;
+    char **arg = (char **)&format;
     uint32_t c;
     char buf[64]; // Buffer for numbers converted to strings
 
@@ -168,9 +168,26 @@ void terminal_printf(const char *format, ...) {
             case 'd': // Decimal
             case 'u': // Unsigned decimal
             case 'x': // Hexadecimal
-                itoa(*((int *)arg++), buf, (c == 'x') ? 16 : 10); // Fix the argument order
+            case 'o': // Octal
+                itoa(*((int *)arg++), buf, 
+                     (c == 'x') ? 16 : (c == 'o') ? 8 : 10);
                 p = buf;
                 break;
+
+            case 'f': { // Floating-point
+                double fval = *((double *)arg++);
+                int integer_part = (int)fval;
+                double fractional_part = fval - integer_part;
+                itoa(integer_part, buf, 10); // Convert integer part
+                p = buf;
+                while (*p) terminal_putchar(*p++); // Print integer part
+                terminal_putchar('.'); // Print decimal point
+                fractional_part *= 1000000; // Get up to 6 decimal places
+                itoa((int)fractional_part, buf, 10);
+                p = buf;
+                while (*p) terminal_putchar(*p++);
+                continue; // Skip the rest of this iteration
+            }
 
             case 's': // String
                 p = *arg++;
@@ -185,13 +202,24 @@ void terminal_printf(const char *format, ...) {
                     terminal_putchar(*p++);
                 break;
 
-            default: // Print the raw character
+            case 'c': // Character
                 terminal_putchar(*((int *)arg++));
                 break;
+
+            case 'p': // Pointer address
+                itoa((uintptr_t)*((void **)arg++), buf, 16);
+                terminal_putchar('0');
+                terminal_putchar('x');
+                p = buf;
+                break;
+
+            default: // Print the raw character
+                terminal_putchar(c);
+                continue; // Skip to the next character
             }
 
             // Print numbers or processed string
-            if (c == 'd' || c == 'u' || c == 'x') {
+            if (c == 'd' || c == 'u' || c == 'x' || c == 'o') {
                 for (p2 = p; *p2; p2++); // Find the length of the number
                 for (; p2 < p + pad; p2++) // Add padding
                     terminal_putchar(pad0 ? '0' : ' ');
@@ -201,3 +229,4 @@ void terminal_printf(const char *format, ...) {
         }
     }
 }
+

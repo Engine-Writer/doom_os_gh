@@ -1,4 +1,5 @@
 #include "multiboot2.h"
+#include "keyboard.h"
 #include "memory.h"
 #include "timer.h"
 #include "hal.h"
@@ -18,6 +19,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     
     timer_set_pit_frequency(125);
     IRQ_RegisterHandler(0, (IRQHandler)timer);
+    IRQ_RegisterHandler(1, (IRQHandler)keyboard_hi);
 
     STI();
 
