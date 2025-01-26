@@ -46,34 +46,20 @@
 #define CLI() asm ("cli")
 #define STI() asm ("sti")
 
-static inline uint16_t inw(uint16_t port) {
-    uint16_t r;
-    asm("inw %1, %0" : "=a" (r) : "dN" (port));
-    return r;
-}
+#define FLAG_SET(x, flag) x |= (flag)
+#define FLAG_UNSET(x, flag) x &= ~(flag)
 
-static inline void outw(uint16_t port, uint16_t data) {
-    asm("outw %1, %0" : : "dN" (port), "a" (data));
-}
+#define UNUSED_PORT 0x80
 
-// Inline static function to read a byte from a port
-static inline uint8_t inb(uint16_t port) {
-    uint8_t result;
-    __asm__ __volatile__ (
-        "inb %1, %0"
-        : "=a"(result)
-        : "d"(port)
-    );
-    return result;
-}
+uint16_t inw(uint16_t port);
+void outw(uint16_t port, uint16_t data);
 
-// Inline static function to write a byte to a port
-static inline void outb(uint16_t port, uint8_t value) {
-    __asm__ __volatile__ (
-        "outb %0, %1"
-        : 
-        : "a"(value), "d"(port)
-    );
-}
+uint8_t inb(uint16_t port);
+void outb(uint16_t port, uint8_t value);
+
+void iowait();
+
+
+extern void HALT();
 
 #endif // IO_H

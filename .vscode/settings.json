@@ -7,6 +7,13 @@
         "util.h": "c",
         "memory.h": "c",
         "terminal.h": "c",
-        "gdt.h": "c"
-    }
+        "gdt.h": "c",
+        "stdint.h": "c",
+        "io.h": "c",
+        "irq.h": "c",
+        "hal.h": "c",
+        "isr.h": "c",
+        "stdbool.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

@@ -7,6 +7,7 @@ extern _end
 
 global multiboot_data
 global _start
+global HALT
 
 ; Multiboot2 header setup
 section .text
@@ -86,6 +87,11 @@ full_start:
 
     ; Jump to the kernel's entry point
     jmp kernel_main
+
+
+HALT:
+    cli
+    hlt
 
 
 section .data
