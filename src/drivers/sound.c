@@ -16,7 +16,9 @@ void sound_play_frequency(uint32_t frequency) {
     outb(PIT_CHANNEL2, (uint8_t)((divisor >> 8) & 0xFF)); // Send MSB
 
     uint8_t tmp = inb(SPEAKER_CTRL);
-    outb(SPEAKER_CTRL, tmp | 3);                // Enable speaker
+    if (tmp != (tmp | 3)) {
+ 		outb(SPEAKER_CTRL, tmp | 3);
+ 	}
 }
 
 void sound_stop() {

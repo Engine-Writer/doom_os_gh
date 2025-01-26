@@ -48,7 +48,7 @@ void kernel_main() {
     
     // Infinite loop to keep the kernel running
     while (true) {
-        sound_play_frequency(200);
+        sound_play_frequency(220);
         ticks = timer_ticks;
         while (timer_ticks-ticks > 10) {
             iowait();

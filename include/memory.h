@@ -26,7 +26,7 @@ typedef struct block_header {
     uint32_t is_free;         // Wether it is free or used, 4 bytes
     uint32_t reserved;        // Align 8
     struct block_header *next; // Pointer to the next block in the free list, 4 bytes
-} block_header_t;
+} __attribute__((packed)) block_header_t;
 
 // Function to initialize memory
 void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_t *mmap_tag);
@@ -38,6 +38,10 @@ void memfree(void *ptr);
 // Utility functions
 void *memset(void *ptr, int value, size_t num);
 void *memcpy(void *dest, const void *src, size_t n);
+int8_t memcmp(const char *str1, const char *str2, size_t n);
+
+void *memrealloc(void *ptr, size_t new_size);
+void *memcalloc(size_t num, size_t size);
 
 // Function to calculate total system memory
 uint32_t get_total_memory();
