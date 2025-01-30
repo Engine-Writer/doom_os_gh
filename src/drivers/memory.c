@@ -160,8 +160,8 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
             memcpy(ntstr, acpi_addr->signature, 4);
             terminal_printf("ACPI table found!\nSignature: %s, Length 0x%x, Revision %d\n",
             (char *)&ntstr, acpi_addr->length, acpi_addr->revision);
-            if (strncmp((char *)&ntstr, "RSDT", 4) == 0) {
-                acpi_parse_rsdt(acpi_addr);
+            if (memcmp((char *)&ntstr, "RSDT", 4) == 0) {
+                acpi_init(acpi_addr);
             }
         }
     }

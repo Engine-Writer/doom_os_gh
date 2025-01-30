@@ -21,7 +21,10 @@
         "keyboard.h": "c",
         "sound.h": "c",
         "math.h": "c",
-        "acpi.h": "c"
+        "acpi.h": "c",
+        "apic.h": "c",
+        "pic_irq.h": "c",
+        "apic_irq.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

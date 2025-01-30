@@ -92,8 +92,31 @@ def run_os():
 
 def clean():
     """Clean up the build directory"""
-    for obj_file in ASM_OBJECTS + C_OBJECTS:
-        os.remove(obj_file)
+    if not os.path.exists(OBJ_DIR):
+        print(f"Directory '{OBJ_DIR}' does not exist.")
+        return
+    
+    if os.path.exists(OBJ_DIR):
+        # List all items (files and directories) in the directory
+        for item in os.listdir(OBJ_DIR):
+            item_path = os.path.join(OBJ_DIR, item)
+            
+            # If it's a directory, remove its contents recursively
+            if os.path.isdir(item_path):
+                for sub_item in os.listdir(item_path):
+                    sub_item_path = os.path.join(item_path, sub_item)
+                    if os.path.isdir(sub_item_path):
+                        os.rmdir(sub_item_path)  # Remove empty subdirectory
+                    else:
+                        os.remove(sub_item_path)  # Remove file
+                os.rmdir(item_path)  # Remove the empty directory
+            else:
+                os.remove(item_path)  # If it's a file, remove it
+
+        print(f"Directory '{OBJ_DIR}' has been cleaned.")
+    else:
+        print(f"Directory '{OBJ_DIR}' does not exist.")
+        
     if os.path.exists(TARGET):
         os.remove(TARGET)
 

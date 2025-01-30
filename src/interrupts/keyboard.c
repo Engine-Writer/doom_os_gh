@@ -3,9 +3,11 @@
 #include "terminal.h"
 #include "keyboard.h"
 #include "idt.h"
-#include "irq.h"
 #include "isr.h"
+#include "pic_irq.h"
+#include "apic_irq.h"
 #include "pic.h"
+#include "apic.h"
 #include "io.h"
 
 keyboard_t keyboard;
@@ -161,6 +163,20 @@ void keyboard_handler(Registers *regs) {
     */
 }
 
-void keyboard_init() {
-    IRQ_RegisterHandler(1, (IRQHandler)keyboard_handler);
+void keyboard_pic_init() {
+    PIC_IRQ_RegisterHandler(1, (IRQHandler)keyboard_handler);
+    PIC_Unmask(1);
+    terminal_printf("PIC Keyboard IRQ Initialized\n");
+}
+
+void keyboard_apic_init() {
+    APIC_IRQ_RegisterHandler(1, keyboard_handler);
+    APIC_EnableIRQ(1);
+    // Enable the keyboard interrupt in the Local APIC's LVT
+    uint32_t lvt_value = APIC_Read(APIC_LVT_LINT0);
+    lvt_value &= ~0x10000;    // Ensure the mask bit is cleared (unmask the interrupt)
+    lvt_value |= 1;  // Set the IRQ vector for the keyboard interrupt
+    APIC_Write(APIC_LVT_LINT0, lvt_value);  // Write to LVT register for LINT0
+
+    terminal_printf("APIC Keyboard IRQ Initialized\n");
 }

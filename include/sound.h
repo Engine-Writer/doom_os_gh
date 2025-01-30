@@ -1,7 +1,5 @@
 #ifndef SOUND_H
 #define SOUND_H
-#include "irq.h"
-#include "pic.h"
 #include "io.h"
 #include <stdint.h>
 

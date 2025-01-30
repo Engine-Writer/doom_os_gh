@@ -1,6 +1,4 @@
 #include "sound.h"
-#include "irq.h"
-#include "pic.h"
 #include "io.h"
 #include <stdint.h>
 

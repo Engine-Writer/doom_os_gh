@@ -11,7 +11,10 @@
 #include "hal.h"
 #include "idt.h"
 #include "isr.h"
-#include "irq.h"
+#include "pic_irq.h"
+#include "apic_irq.h"
+#include "pic.h"
+#include "apic.h"
 #include "io.h"
 
 

@@ -59,6 +59,9 @@ void outb(uint16_t port, uint8_t value);
 
 void iowait();
 
+void cpuSetMSR(uint32_t msr, uint32_t eax, uint32_t edx);
+void cpuGetMSR(uint32_t msr, uint32_t *eax, uint32_t *edx);
+uint8_t apic_enablable();
 
 extern void HALT();
 

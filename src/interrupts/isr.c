@@ -60,13 +60,13 @@ void __attribute__((cdecl)) ISR_Handler(Registers* regs) {
     } else {
         terminal_printf("Unhandled exception %d %s\n", regs->interrupt, g_Exceptions[regs->interrupt]);
         
-        terminal_printf("  eax=%x  ebx=%x  ecx=%x  edx=%x  esi=%x  edi=%x\n",
+        /*terminal_printf("  eax=%x  ebx=%x  ecx=%x  edx=%x  esi=%x  edi=%x\n",
                regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi);
 
         terminal_printf("  esp=%x  ebp=%x  eip=%x  eflags=%x  cs=%x  ds=%x  ss=%x\n",
                regs->esp, regs->ebp, regs->eip, regs->eflags, regs->cs, regs->ds, regs->ss);
 
-        terminal_printf("  interrupt=%x  errorcode=%x\n", regs->interrupt, regs->error);
+        terminal_printf("  interrupt=%x  errorcode=%x\n", regs->interrupt, regs->error);*/
 
         terminal_printf("KERNEL PANIC!\n");
         HALT();

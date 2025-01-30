@@ -4,10 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "abomination.h"
-//#include "idt.h"
-//#include "irq.h"
 #include "isr.h"
-//#include "pic.h"
 #include "io.h"
 #include "util.h"
 
@@ -179,6 +176,7 @@ uint8_t keyboard_reset();
 uint8_t keyboard_identify();
 
 void keyboard_handler(Registers *regs);
-void keyboard_init();
+void keyboard_pic_init();
+void keyboard_apic_init();
 
 #endif // KEYBOARD_H
