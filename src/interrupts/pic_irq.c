@@ -4,7 +4,7 @@
 #include "io.h"
 #include <stddef.h>
 
-#define PIC_REMAP_OFFSET        0x20
+#define PIC_REMAP_OFFSET        0xE0
 
 IRQHandler g_PICIRQHandlers[16];
 

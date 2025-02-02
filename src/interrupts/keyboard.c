@@ -139,6 +139,8 @@ uint8_t keyboard_identify() {
 
 // Keyboard interrupt handler
 void keyboard_handler(Registers *regs) {
+    // terminal_writestring("IT WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORKKKKKS!!!!!!!!!!!!!!!!!");
+    
     uint8_t scancode = keyboard_read_response();
 
     // Handle modifier keys
@@ -188,8 +190,8 @@ void IOAPIC_ConfigureKeyboard() {
     uint32_t entry_low, entry_high;
 
     // Read current IRQ1 entry
-    entry_low = IOAPIC_Read(IOAPIC_IRQ1_ENTRY);       // Lower 32 bits
-    entry_high = IOAPIC_Read(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
+    entry_low = APIC_ReadIO(IOAPIC_IRQ1_ENTRY);       // Lower 32 bits
+    entry_high = APIC_ReadIO(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
 
     // Configure lower 32-bit redirection entry
     entry_low &= ~0x000000FF;  // Reset APICINT
@@ -201,12 +203,12 @@ void IOAPIC_ConfigureKeyboard() {
     entry_low &= ~(1 << 16); // Enable interrupt (bit 16 = 0)
 
     // Configure upper 32-bit redirection entry (destination field)
-    entry_high &= 0xFF000000;  // Clear the destination field
+    entry_high &= ~0xFF000000;  // Clear the destination field
     entry_high |= (0 << 24);   // Route interrupt to CPU 0 (bit 24 = 1)
 
     // Write the updated values back
-    IOAPIC_Write(IOAPIC_IRQ1_ENTRY, entry_low);       // Write lower 32 bits
-    IOAPIC_Write(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
+    APIC_WriteIO(IOAPIC_IRQ1_ENTRY, entry_low);       // Write lower 32 bits
+    APIC_WriteIO(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
 
     terminal_printf("Configured IOAPIC for IRQ1 (keyboard) at 0x%x\n", apic_io_base);
 }
@@ -216,15 +218,16 @@ void IOAPIC_MaskIRQ1() {
     uint32_t entry_low, entry_high;
 
     // Step 1: Read the current entry for IRQ1 in the redirection table
-    entry_low = IOAPIC_Read(IOAPIC_IRQ1_ENTRY);  // Lower 32 bits
-    entry_high = IOAPIC_Read(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
+    entry_low = APIC_ReadIO(IOAPIC_IRQ1_ENTRY);  // Lower 32 bits
+    entry_high = APIC_ReadIO(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
 
     // Step 2: Mask the interrupt (set the mask bit, bit 16 in the low entry)
     entry_low |= 0x00010000;  // Set the mask bit (bit 16)
 
     // Step 3: Write the updated entry back to the IOAPIC redirection table
-    IOAPIC_Write(IOAPIC_IRQ1_ENTRY, entry_low);  // Write lower 32 bits
-    IOAPIC_Write(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
+    APIC_WriteIO(IOAPIC_IRQ1_ENTRY, entry_low);  // Write lower 32 bits
+    APIC_WriteIO(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
 
     terminal_printf("Masked IRQ1 (keyboard)\n");
 }
+

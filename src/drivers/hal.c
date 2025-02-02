@@ -83,6 +83,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
     if (apic_enablable() != 0) {
+        PIC_IRQ_Initialize();
         PIC_Disable();    // He didn't even live for a second man poor guy
         outb(0x22, 0x70); // Select IMCR register
         outb(0x23, 0x1);  // Disable PICs (enable APIC mode)

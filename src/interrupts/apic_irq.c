@@ -31,7 +31,7 @@ void APIC_IRQ_Handler(Registers* regs) {
     }
 
     // Send EOI (End of Interrupt) to the APIC
-    APIC_SendEOI();
+    LAPIC_SendEOI();
 }
 
 // Initialize APIC IRQ handling

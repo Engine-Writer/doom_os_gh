@@ -79,9 +79,3 @@ void APIC_Initialize() {
     terminal_printf("APIC ID: 0x%x\n", apic_id);    
     terminal_printf("APIC Initialized\n");
 }
-
-
-void APIC_SendEOI() {
-    // Send EOI to the APIC to acknowledge interrupt handling is done.
-    APIC_Write(APIC_EOI, 0);
-}

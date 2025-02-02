@@ -117,7 +117,10 @@ void cpuWriteIoApic(void *ioapicaddr, uint32_t reg, uint32_t value);
 // Function to configure the IMCR to switch from PIC to APIC mode
 void ConfigureIMCR();
 void APIC_Initialize();
-void APIC_SendEOI();
+
+static inline void LAPIC_SendEOI() {
+    *((volatile uint32_t *)(apic_base + APIC_EOI)) = 0;
+}
 
 
 #endif // APIC_H
