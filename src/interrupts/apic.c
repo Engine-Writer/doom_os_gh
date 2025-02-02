@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "acpi.h"
 #include "apic.h"
 #include "apic_irq.h"
 #include "idt.h"
@@ -6,6 +7,7 @@
 #include "io.h"
 
 uint32_t apic_base = APIC_BASE;
+uint32_t apic_io_base = APIC_IO_BASE;
 
 // Set the physical address for local APIC registers
 void cpu_set_apic_base(uintptr_t apic) {
@@ -31,20 +33,6 @@ uintptr_t cpu_get_apic_base() {
 #endif
 }
 
-// Read from IOAPIC register
-uint32_t cpuReadIoApic(void *ioapicaddr, uint32_t reg) {
-   volatile uint32_t *ioapic = (volatile uint32_t *)ioapicaddr;
-   ioapic[0] = (reg & 0xFF); // Select register
-   return ioapic[4]; // Read from data register
-}
-
-// Write to IOAPIC register
-void cpuWriteIoApic(void *ioapicaddr, uint32_t reg, uint32_t value) {
-   volatile uint32_t *ioapic = (volatile uint32_t *)ioapicaddr;
-   ioapic[0] = (reg & 0xFF); // Select register
-   ioapic[4] = value; // Write value to data register
-}
-
 // Configure IMCR to switch from PIC to APIC mode
 void ConfigureIMCR() {
     uint8_t al = inb(0x22); // Read IMCR register
@@ -58,12 +46,17 @@ void ConfigureIMCR() {
 void APIC_Initialize() {
     // Step 1: Ensure APIC is enabled in the IA32_APIC_BASE_MSR register
     uintptr_t apic_addr = cpu_get_apic_base();
+    if (local_ioapic_address != 0) {
+        apic_io_base = local_ioapic_address;
+    }
+    
     if (apic_addr == 0) {
         // If the APIC base address is 0, it means APIC is not enabled
         // Attempt to set the APIC base address
         cpu_set_apic_base(APIC_BASE);
         apic_addr = APIC_BASE;
     }
+
     cpu_set_apic_base(cpu_get_apic_base());
     uint32_t cr4 = ReadCR4();
     if (!(cr4 & CR4_APIC_BIT)) {

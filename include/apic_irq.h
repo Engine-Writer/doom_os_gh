@@ -14,5 +14,7 @@ void APIC_IRQ_Initialize();                   // Initialize APIC IRQ handling
 void APIC_IRQ_RegisterHandler(uint32_t irq, IRQHandler handler);  // Register an IRQ handler for APIC IRQs
 void APIC_EnableIRQ(uint32_t irq);                 // Enable a specific IRQ
 void APIC_DisableIRQ(uint32_t irq);                // Disable a specific IRQ
+void APIC_EnableIOIRQ(uint32_t irq, uint32_t interrupt_destination);
+void APIC_DisableIOIRQ(uint32_t irq);
 
 #endif // APIC_IRQ_H

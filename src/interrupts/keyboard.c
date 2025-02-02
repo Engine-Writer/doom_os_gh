@@ -10,6 +10,15 @@
 #include "apic.h"
 #include "io.h"
 
+#define KEYBOARD_IRQ_VECTOR         1
+#define KEYBOARD_INTERRUPT_VECTOR   0x21
+// IOAPIC base address and redirection entry for IRQ1 (keyboard)
+
+#define IOAPIC_IRQ1_ENTRY     0x12  // Entry for IRQ1 in the Redirection Table
+#define IOAPIC_IRQ1_VECTOR    0x21  // IRQ1 uses vector 0x21 on x86 systems (keyboard)
+#define IOAPIC_DELIVERY_MODE  0x00000100  // Fixed delivery mode (normal interrupt)
+#define IOAPIC_DESTINATION    0x00000000  // Send to all CPUs (this is usually specific for SMP systems)
+
 keyboard_t keyboard;
 const uint8_t keyboard_layout_us[2][128] = {
     {
@@ -152,15 +161,14 @@ void keyboard_handler(Registers *regs) {
     // Update key state
     keyboard.keys[(uint8_t)(scancode & 0x7F)] = KEY_IS_PRESS(scancode);
     keyboard.chars[KEY_CHAR(scancode)] = KEY_IS_PRESS(scancode);
-/*
+
     if (keyboard.chars[KEY_CHAR(scancode)] && !was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        // terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
+        terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
     } else if (!keyboard.chars[KEY_CHAR(scancode)] && was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        // terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
+        terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
     }
-    */
 }
 
 void keyboard_pic_init() {
@@ -170,13 +178,53 @@ void keyboard_pic_init() {
 }
 
 void keyboard_apic_init() {
-    APIC_IRQ_RegisterHandler(1, keyboard_handler);
-    APIC_EnableIRQ(1);
-    // Enable the keyboard interrupt in the Local APIC's LVT
-    uint32_t lvt_value = APIC_Read(APIC_LVT_LINT0);
-    lvt_value &= ~0x10000;    // Ensure the mask bit is cleared (unmask the interrupt)
-    lvt_value |= 1;  // Set the IRQ vector for the keyboard interrupt
-    APIC_Write(APIC_LVT_LINT0, lvt_value);  // Write to LVT register for LINT0
+    APIC_IRQ_RegisterHandler(1, (IRQHandler)keyboard_handler);
+    IOAPIC_ConfigureKeyboard();
+    terminal_printf("Keyboard Interrupt configuration complete!\n");
+}
 
-    terminal_printf("APIC Keyboard IRQ Initialized\n");
+// Function to configure IOAPIC for keyboard interrupt (IRQ1)
+void IOAPIC_ConfigureKeyboard() {
+    uint32_t entry_low, entry_high;
+
+    // Read current IRQ1 entry
+    entry_low = IOAPIC_Read(IOAPIC_IRQ1_ENTRY);       // Lower 32 bits
+    entry_high = IOAPIC_Read(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
+
+    // Configure lower 32-bit redirection entry
+    entry_low &= ~0x000000FF;  // Reset APICINT
+    entry_low = IOAPIC_IRQ1_VECTOR;  // Set interrupt vector (0x21)
+    entry_low &= ~0x00000700;  // Reset trig flag
+    entry_low |= APIC_DELIVERY_MODE_FIXED;  // Fixed delivery mode
+    entry_low &= ~(1 << 15);  // Edge-triggered (bit 15 = 0 for edge)
+    entry_low &= ~(1 << 13);  // Active high polarity (bit 13 = 0 for high)
+    entry_low &= ~(1 << 16); // Enable interrupt (bit 16 = 0)
+
+    // Configure upper 32-bit redirection entry (destination field)
+    entry_high &= 0xFF000000;  // Clear the destination field
+    entry_high |= (0 << 24);   // Route interrupt to CPU 0 (bit 24 = 1)
+
+    // Write the updated values back
+    IOAPIC_Write(IOAPIC_IRQ1_ENTRY, entry_low);       // Write lower 32 bits
+    IOAPIC_Write(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
+
+    terminal_printf("Configured IOAPIC for IRQ1 (keyboard) at 0x%x\n", apic_io_base);
+}
+
+// Function to mask the keyboard interrupt (IRQ1)
+void IOAPIC_MaskIRQ1() {
+    uint32_t entry_low, entry_high;
+
+    // Step 1: Read the current entry for IRQ1 in the redirection table
+    entry_low = IOAPIC_Read(IOAPIC_IRQ1_ENTRY);  // Lower 32 bits
+    entry_high = IOAPIC_Read(IOAPIC_IRQ1_ENTRY + 1);  // Upper 32 bits
+
+    // Step 2: Mask the interrupt (set the mask bit, bit 16 in the low entry)
+    entry_low |= 0x00010000;  // Set the mask bit (bit 16)
+
+    // Step 3: Write the updated entry back to the IOAPIC redirection table
+    IOAPIC_Write(IOAPIC_IRQ1_ENTRY, entry_low);  // Write lower 32 bits
+    IOAPIC_Write(IOAPIC_IRQ1_ENTRY + 1, entry_high);  // Write upper 32 bits
+
+    terminal_printf("Masked IRQ1 (keyboard)\n");
 }

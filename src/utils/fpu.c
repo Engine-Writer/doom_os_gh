@@ -15,4 +15,5 @@ void FPU_Initialize() {
     t |= 3 << 9;
     asm("mov %0, %%cr4" :: "r"(t));
     asm("fninit");
+    asm("fclex");
 }

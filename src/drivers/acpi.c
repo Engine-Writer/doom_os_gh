@@ -18,6 +18,7 @@ uint16_t sci_int;
 uint64_t pm_timer_addr;
 
 uint32_t local_apic_address;
+uint32_t local_ioapic_address;
 uint32_t apic_flags;
 uint32_t *apic_entries;
 
@@ -198,22 +199,93 @@ void acpi_parse_facp(facp_table_t *facp_table) {
 
 // Process the APIC table
 void acpi_parse_madt(madt_table_t *madt_table) {
+    // Step 1: Store Local APIC Address and Flags
     local_apic_address = madt_table->local_apic_address;
     apic_flags = madt_table->flags;
     apic_base = madt_table->local_apic_address;
 
-    // Dynamically allocate memory for APIC entries
-    apic_entries = (uint32_t *)memalloc(madt_table->header.length - sizeof(acpi_header_t));
-
-    // Copy the APIC entries from the table
-    memcpy(apic_entries, madt_table->apic_entries, madt_table->header.length - sizeof(acpi_header_t));
-
-    // terminal_printf("APIC Table:\n");
-    terminal_printf("Local APIC Address: 0x%x, size %d\n", local_apic_address, madt_table->header.length - sizeof(acpi_header_t));
+    // Print basic APIC information
+    terminal_printf("Local APIC Address: 0x%x\n", local_apic_address);
     terminal_printf("Flags: 0x%x\n", apic_flags);
 
-    // Further processing for APIC entries can be done here...
+    // Step 2: Get the start and end of the APIC entries array
+    uint8_t *entry_ptr = madt_table->apic_entries;
+    uint8_t *end_ptr = (uint8_t *)madt_table + madt_table->header.length;
+
+    // Step 3: Process each APIC entry
+    while (entry_ptr < end_ptr) {
+        uint8_t type = entry_ptr[0];   // First byte is the entry type
+        uint8_t length = entry_ptr[1]; // Second byte is the entry length
+
+        // If length is invalid (to avoid infinite loops)
+        if (length < 2) {
+            terminal_printf("Error: Invalid MADT entry length %d\n", length);
+            break;
+        }
+
+        switch (type) {
+            case 0: { // Processor Local APIC
+                processor_local_apic_entry_t *entry = (processor_local_apic_entry_t *)entry_ptr;
+                terminal_printf("CPU APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
+                                entry->apic_id, entry->acpi_processor_id, entry->flags);
+                break;
+            }
+            
+            case 1: { // I/O APIC
+                ioapic_entry_t *entry = (ioapic_entry_t *)entry_ptr;
+                terminal_printf("I/O APIC: ID=%d, Address=0x%x, Global IRQ Base=%d\n",
+                                entry->apic_id, entry->ioapic_address, entry->global_irq_base);
+                local_ioapic_address = entry->ioapic_address;
+                break;
+            }
+
+            case 2: { // Interrupt Source Override
+                ioapic_interrupt_source_override_entry_t *entry = (ioapic_interrupt_source_override_entry_t *)entry_ptr;
+                terminal_printf("IRQ Override: Bus Source=%d, IRQ Source=%d, Global IRQ=%d, Flags=0x%x\n",
+                                entry->bus_source, entry->irq_source, entry->global_irq, entry->flags);
+                break;
+            }
+
+            case 3: { // Non-maskable Interrupt Source
+                ioapic_nmi_source_entry_t *entry = (ioapic_nmi_source_entry_t *)entry_ptr;
+                terminal_printf("I/O APIC NMI: Source=%d, Global IRQ=%d, Flags=0x%x\n",
+                                entry->nmi_source, entry->global_irq, entry->flags);
+                break;
+            }
+
+            case 4: { // Local APIC Non-maskable Interrupt
+                local_apic_nmi_entry_t *entry = (local_apic_nmi_entry_t *)entry_ptr;
+                terminal_printf("Local APIC NMI: Processor ID=%d, LINT=%d, Flags=0x%x\n",
+                                entry->acpi_processor_id, entry->lint, entry->flags);
+                break;
+            }
+
+            case 5: { // Local APIC Address Override (for 64-bit systems)
+                local_apic_address_override_entry_t *entry = (local_apic_address_override_entry_t *)entry_ptr;
+                terminal_printf("Local APIC Address Override: New Address=0x%lx\n", entry->local_apic_address);
+                local_apic_address = entry->local_apic_address; // Update address
+                break;
+            }
+
+            case 9: { // Processor Local x2APIC (for newer systems)
+                processor_local_x2apic_entry_t *entry = (processor_local_x2apic_entry_t *)entry_ptr;
+                terminal_printf("CPU x2APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
+                                entry->processor_x2apic_id, entry->acpi_id, entry->flags);
+                break;
+            }
+
+            default: // Unknown or unhandled APIC entry type
+                terminal_printf("Unknown APIC Entry: Type=%d, Length=%d\n", type, length);
+                break;
+        }
+
+        // Move to the next APIC entry
+        entry_ptr += length;
+    }
+
+    terminal_printf("MADT Parsing Completed.\n");
 }
+
 
 // Process the HPET table
 void acpi_parse_hpet(hpet_table_t *hpet_table) {

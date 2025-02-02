@@ -115,6 +115,84 @@ typedef struct {
 } __attribute__((packed)) dsdt_table_t;
 
 // APIC Table
+
+// Processor Local APIC Entry (Entry Type 0)
+typedef struct {
+    uint8_t type;            // Entry type (0 = Processor Local APIC)
+    uint8_t length;          // Length of the entry (8 bytes for Processor Local APIC)
+    uint8_t acpi_processor_id;  // ACPI Processor ID
+    uint8_t apic_id;         // APIC ID
+    uint32_t flags;          // Flags (Processor Enabled, Online Capable)
+} __attribute__((packed)) processor_local_apic_entry_t;
+
+// I/O APIC Entry (Entry Type 1)
+typedef struct {
+    uint8_t type;            // Entry type (1 = I/O APIC)
+    uint8_t length;          // Length of the entry (12 bytes for I/O APIC)
+    uint8_t apic_id;         // I/O APIC's ID
+    uint8_t reserved;        // Reserved (0)
+    uint32_t ioapic_address; // Physical address of the I/O APIC
+    uint32_t global_irq_base;// Global System Interrupt Base
+} __attribute__((packed)) ioapic_entry_t;
+
+// I/O APIC Interrupt Source Override Entry (Entry Type 2)
+typedef struct {
+    uint8_t type;             // Entry type (2 = I/O APIC Interrupt Source Override)
+    uint8_t length;           // Length of the entry (10 bytes for Interrupt Source Override)
+    uint8_t bus_source;       // Bus Source
+    uint8_t irq_source;       // IRQ Source
+    uint32_t global_irq;      // Global System Interrupt
+    uint16_t flags;           // Flags (reserved bits)
+} __attribute__((packed)) ioapic_interrupt_source_override_entry_t;
+
+// I/O APIC Non-maskable interrupt source Entry (Entry Type 3)
+typedef struct {
+    uint8_t type;             // Entry type (3 = I/O APIC Non-maskable interrupt)
+    uint8_t length;           // Length of the entry (10 bytes for Non-maskable interrupt)
+    uint8_t nmi_source;       // NMI Source
+    uint8_t reserved;         // Reserved
+    uint16_t flags;           // Flags (reserved bits)
+    uint32_t global_irq;      // Global System Interrupt
+} __attribute__((packed)) ioapic_nmi_source_entry_t;
+
+// Local APIC Non-maskable interrupts Entry (Entry Type 4)
+typedef struct {
+    uint8_t type;             // Entry type (4 = Local APIC Non-maskable interrupts)
+    uint8_t length;           // Length of the entry (8 bytes)
+    uint8_t acpi_processor_id; // ACPI Processor ID
+    uint16_t flags;           // Flags
+    uint8_t lint;             // LINT# (0 or 1)
+} __attribute__((packed)) local_apic_nmi_entry_t;
+
+// Local APIC Address Override Entry (Entry Type 5)
+typedef struct {
+    uint8_t type;             // Entry type (5 = Local APIC Address Override)
+    uint8_t length;           // Length of the entry (10 bytes)
+    uint8_t reserved[2];      // Reserved
+    uint64_t local_apic_address; // 64-bit physical address of Local APIC
+} __attribute__((packed)) local_apic_address_override_entry_t;
+
+// Processor Local x2APIC Entry (Entry Type 9)
+typedef struct {
+    uint8_t type;             // Entry type (9 = Processor Local x2APIC)
+    uint8_t length;           // Length of the entry (16 bytes)
+    uint16_t reserved;        // Reserved
+    uint32_t processor_x2apic_id; // Processor's local x2APIC ID
+    uint32_t flags;           // Flags (same as the Local APIC flags)
+    uint32_t acpi_id;         // ACPI Processor ID
+} __attribute__((packed)) processor_local_x2apic_entry_t;
+
+// Union of all possible entry types in the MADT
+typedef union {
+    processor_local_apic_entry_t processor_local_apic;
+    ioapic_entry_t ioapic;
+    ioapic_interrupt_source_override_entry_t ioapic_interrupt_source_override;
+    ioapic_nmi_source_entry_t ioapic_nmi_source;
+    local_apic_nmi_entry_t local_apic_nmi;
+    local_apic_address_override_entry_t local_apic_address_override;
+    processor_local_x2apic_entry_t processor_local_x2apic;
+} __attribute__((packed)) apic_entry_t;
+
 typedef struct {
     acpi_header_t header;       // ACPI table header
     uint32_t local_apic_address; // Address of the local APIC
@@ -162,6 +240,7 @@ extern uint16_t sci_int;
 extern uint64_t pm_timer_addr;
 
 extern uint32_t  local_apic_address;
+extern uint32_t local_ioapic_address;
 extern uint32_t  apic_flags;
 extern uint32_t *apic_entries;
 

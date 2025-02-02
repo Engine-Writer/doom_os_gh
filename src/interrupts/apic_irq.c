@@ -9,7 +9,7 @@
 
 // APIC Register Offsets
 #define APIC_ISR  0x100  // Interrupt Request Register (IRR)
-#define APIC_IRR  0x120  // In-Service Register (ISR)
+#define APIC_IRR  0x200  // In-Service Register (ISR)
 
 // Global IRQ Handlers
 IRQHandler g_APICIRQHandlers[MAX_IRQS];
@@ -74,4 +74,26 @@ void APIC_DisableIRQ(uint32_t irq) {
     uint32_t value = APIC_Read(APIC_LVT_TIMER + irq * APIC_REGISTER_OFFSET);
     value |= 0x10000; // Set the mask bit (bit 16) to mask the interrupt
     APIC_Write(APIC_LVT_TIMER + irq * APIC_REGISTER_OFFSET, value);
+}
+
+  
+// Enable I/O APIC interrupt (this is just a write to the redirection table entry)
+void APIC_EnableIOIRQ(uint32_t irq, uint32_t interrupt_destination) {
+    uint32_t redirection_entry = irq * APIC_REGISTER_OFFSET;
+
+    // Set delivery mode to fixed, vector to the keyboard interrupt vector, unmask the interrupt
+    uint32_t value = (interrupt_destination | APIC_DELIVERY_MODE_FIXED);
+    value &= ~0x10000;  // Unmask interrupt (clear the mask bit)
+
+    APIC_WriteIO(redirection_entry, value);
+}
+
+// Disable I/O APIC interrupt
+void APIC_DisableIOIRQ(uint32_t irq) {
+    uint32_t redirection_entry = irq * APIC_REGISTER_OFFSET;
+
+    // Mask the interrupt by setting the mask bit
+    uint32_t value = APIC_ReadIO(redirection_entry);
+    value |= 0x10000;  // Mask interrupt (set the mask bit)
+    APIC_WriteIO(redirection_entry, value);
 }

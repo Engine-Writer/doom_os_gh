@@ -83,15 +83,15 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
     if (apic_enablable() != 0) {
-        PIC_Disable();
+        PIC_Disable();    // He didn't even live for a second man poor guy
         outb(0x22, 0x70); // Select IMCR register
         outb(0x23, 0x1);  // Disable PICs (enable APIC mode)
         
         APIC_IRQ_Initialize();
-        APIC_IRQ_RegisterHandler(sci_int, (IRQHandler)acpi_sci_handler);
 
         timer_apic_init();
         keyboard_apic_init();
+        APIC_IRQ_RegisterHandler(sci_int, (IRQHandler)acpi_sci_handler);
 
         terminal_writestring("APIC INIT\n");
     } else {
@@ -104,7 +104,8 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
         
         terminal_writestring("PIC INIT\n");
     }
-
+    terminal_writestring("ABT TO STI\n");
     STI();
+    terminal_writestring("STI-ed\n");
     return eflagerrs;
 }

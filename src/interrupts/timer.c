@@ -26,7 +26,6 @@
 #define APIC_TIMER_INITCNT    0x380       // Initial counter
 #define APIC_TIMER_CURRCNT    0x390       // Current counter
 #define APIC_TIMER_DIV        0x3E0       // Timer divide configuration
-#define APIC_LVT_INT_MASKED   (1 << 16)   // Masked interrupt
 
 // Timer state variables
 uint32_t timer_ticks = 0;
@@ -74,7 +73,7 @@ void timer_apic_init() {
     APIC_Write(APIC_TIMER_DIV, APIC_TIMER_DIVIDE_64);
 
     // Prepare the PIT for a 10ms sleep (10000µs)
-    pit_prepare_sleep(10000);
+    pit_prepare_sleep(20000);
 
     // Start APIC timer with max initial count
     APIC_Write(APIC_TIMER_INITCNT, APIC_TIMER_INIT_COUNT);
