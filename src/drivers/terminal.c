@@ -101,7 +101,7 @@ void terminal_clear(VGA_Color2 color) {
     }
 }
 
-void terminal_set_cursor_position(uint8_Vector2 position) {
+void terminal_set_cursor_position(uint8_Vector2_t position) {
     uint16_t index = position.y * VGA_WIDTH + position.x;
 
     // Send the high byte (upper 8 bits) to port 0x3D5
@@ -113,7 +113,7 @@ void terminal_set_cursor_position(uint8_Vector2 position) {
     outb(VGA_PORT_DATA, index & 0xFF);
 }
 
-uint8_Vector2 terminal_get_cursor_position() {
+uint8_Vector2_t terminal_get_cursor_position() {
     uint16_t position = 0;
 
     // Read the high byte
@@ -124,7 +124,7 @@ uint8_Vector2 terminal_get_cursor_position() {
     outb(VGA_PORT_INDEX, 0x0F); // Cursor low byte index
     position |= inb(VGA_PORT_DATA);
 
-    uint8_Vector2 cursor_pos;
+    uint8_Vector2_t cursor_pos;
     cursor_pos.x = position % VGA_WIDTH;   // Column (x)
     cursor_pos.y = position / VGA_HEIGHT;   // Row (y)
 

@@ -46,4 +46,7 @@ void *memcalloc(size_t num, size_t size);
 // Function to calculate total system memory
 uint32_t get_total_memory();
 
+
+void *memset_pattern(void *ptr, const void *pattern, size_t pattern_size, size_t num);
+
 #endif // MEMORY_H

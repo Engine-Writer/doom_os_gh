@@ -10,6 +10,18 @@ uint32_t heap_end = 0;
 static block_header_t *free_list = (block_header_t *)0xFFFFFFFF; // Start with no free blocks
 uint32_t total_mem = 0;
 
+void *memset_pattern(void *ptr, const void *pattern, size_t pattern_size, size_t num) {
+    unsigned char *p = (unsigned char *)ptr;
+    const unsigned char *pat = (const unsigned char *)pattern;
+    size_t pat_idx = 0;
+
+    for (size_t i = 0; i < num; ++i) {
+        p[i] = pat[pat_idx];
+        pat_idx = (pat_idx + 1) % pattern_size;
+    }
+
+    return ptr;
+}
 
 // Simple memset function (can be expanded if needed)
 void *memset(void *ptr, int value, size_t num) {

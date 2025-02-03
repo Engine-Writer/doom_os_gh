@@ -57,8 +57,8 @@ void terminal_writestring(const char* data);
 void terminal_clear(VGA_Color2 color);
 void terminal_printf(const char *format, ...);
 
-void terminal_set_cursor_position(uint8_Vector2 position);
-uint8_Vector2 terminal_get_cursor_position();
+void terminal_set_cursor_position(uint8_Vector2_t position);
+uint8_Vector2_t terminal_get_cursor_position();
 
 //extern void (*cls)(VGA_Color2 color);
 //extern void (*printf)(const char *format, ...);

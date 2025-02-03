@@ -32,6 +32,7 @@ INFO_REQ_TAG_START:
     dd 6
     dd 7
     dd 8
+    dd 16
 INFO_REQ_TAG_END:
 
 align 8
@@ -54,6 +55,17 @@ ENTRY_TAG_START:
     dd ENTRY_TAG_END - ENTRY_TAG_START ; Tag size (8 bytes)
     dd full_start            ; Entry point address (physical address)
 ENTRY_TAG_END:
+
+align 8
+
+FBO_REQ_TAG_START:
+    dw 5           ; Tag type (5 for framebuffer)
+    dw 0           ; Flags
+    dd 20          ; Size of the tag
+    dd 640        ; Preferred width (e.g., 1024 pixels)
+    dd 480         ; Preferred height (e.g., 768 pixels)
+    dd 32          ; Preferred depth (e.g., 32 bits per pixel)
+FBO_REQ_TAG_END:
 
 align 8
 

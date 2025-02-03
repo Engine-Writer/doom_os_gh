@@ -286,5 +286,11 @@ void acpi_parse_ssdt(ssdt_table_t *ssdt_table);
 void acpi_parse_rsdt(acpi_header_t *rsdt_table);
 void acpi_init(acpi_header_t *rsdt_table);
 void acpi_sci_handler(Registers *regs);
+void sci_apic_init();
+void IOAPIC_ConfigureSCI();
+void acpi_setup_event_enables();
+
+void ACPI_ENABLE();
+void ACPI_DISABLE();
 
 #endif // ACPI_H

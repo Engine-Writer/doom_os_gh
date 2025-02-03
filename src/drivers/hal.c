@@ -8,6 +8,7 @@
 #include "gdt.h"
 #include "idt.h"
 #include "isr.h"
+#include "svga.h"
 #include "pic_irq.h"
 #include "apic_irq.h"
 #include "pic.h"
@@ -16,6 +17,8 @@
 #include "io.h"
 #include <stdint.h>
 
+multiboot_tag_framebuffer_t *fbo_tag_gb;
+multiboot_tag_framebuffer_common_t fbo_com_gb;
 
 uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     FPU_Initialize();
@@ -42,7 +45,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
 
     multiboot_tag_t *tag = (multiboot_tag_t*)((uint8_t *)multiboot_info_addr + 8); // Adjusted to have (uint8_t *)
     while ((uint32_t)tag < mb2_end) {
-        // terminal_printf("TAG TYPE %d WITH SIZE %x AND ADDRESS %x\n", tag->type, tag->size, tag);
+        terminal_printf("TAG TYPE %d WITH SIZE %x AND ADDRESS %x\n", tag->type, tag->size, tag);
         if (tag->type == 0)
             break;
                 switch (tag->type) {
@@ -67,21 +70,35 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
             case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
                 multiboot_tag_framebuffer_t *fbo_tag = (multiboot_tag_framebuffer_t *)tag;
                 multiboot_tag_framebuffer_common_t fbo_com = fbo_tag->common;
-
-                /*terminal_printf("Framebuffer of type %d and size 0x%x, pitch 0x%x, size (%d x %d) at address 0x%x found!\n",
+                fbo_tag_gb = fbo_tag;
+                fbo_com_gb = fbo_com;
+/*
+                terminal_printf("Framebuffer of type %d and size 0x%x, pitch 0x%x, size (%d x %d) at address 0x%x found!\n",
                     fbo_com.framebuffer_type,
                     fbo_com.size, // If you want to print size, make sure it's correct (either 'size' or calculated manually)
                     fbo_com.framebuffer_pitch,
                     fbo_com.framebuffer_width,
                     fbo_com.framebuffer_height,
-                    fbo_com.framebuffer_addr); // Printing 64-bit address correctly with %lx
-                */break;
+                    fbo_com.framebuffer_addr);*/
+                
+               break;
             }
+            case MULTIBOOT_TAG_TYPE_VBE: {
+                multiboot_tag_vbe_t *vbe_tag = (multiboot_tag_vbe_t *)tag;
 
+                terminal_printf("VBE::: Mode %d, Mode Info 0x%x, Interface Len 0x%x, Segment 0x%x, found!\n",
+                    vbe_tag->vbe_mode,
+                    vbe_tag->vbe_mode_info, // If you want to print size, make sure it's correct (either 'size' or calculated manually)
+                    vbe_tag->vbe_interface_len,
+                    vbe_tag->vbe_interface_off,
+                    vbe_tag->vbe_interface_seg);
+                break;
+            }
             default: break;
         }
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
+    ACPI_DISABLE(); // Maybe not yet.....
     if (apic_enablable() != 0) {
         PIC_IRQ_Initialize();
         PIC_Disable();    // He didn't even live for a second man poor guy
@@ -92,7 +109,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
 
         timer_apic_init();
         keyboard_apic_init();
-        APIC_IRQ_RegisterHandler(sci_int, (IRQHandler)acpi_sci_handler);
+        // sci_apic_init();
 
         terminal_writestring("APIC INIT\n");
     } else {
@@ -108,5 +125,6 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     terminal_writestring("ABT TO STI\n");
     STI();
     terminal_writestring("STI-ed\n");
+    RenderFrame0();
     return eflagerrs;
 }
