@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "util.h"
+#include "math.h"
 #include "memory.h"
 
 // Function to convert an integer to a string

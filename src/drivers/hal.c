@@ -3,6 +3,7 @@
 #include "keyboard.h"
 #include "memory.h"
 #include "timer.h"
+#include "hpet.h"
 #include "hal.h"
 #include "fpu.h"
 #include "gdt.h"
@@ -10,6 +11,7 @@
 #include "isr.h"
 #include "svga.h"
 #include "pic_irq.h"
+#include "paging.h"
 #include "apic_irq.h"
 #include "pic.h"
 #include "apic.h"
@@ -99,6 +101,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
     }
     ACPI_DISABLE(); // Maybe not yet.....
+    // paging_init();
     if (apic_enablable() != 0) {
         PIC_IRQ_Initialize();
         PIC_Disable();    // He didn't even live for a second man poor guy
@@ -125,6 +128,7 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     terminal_writestring("ABT TO STI\n");
     STI();
     terminal_writestring("STI-ed\n");
+    HPET_Initialize();
     RenderFrame0();
     return eflagerrs;
 }

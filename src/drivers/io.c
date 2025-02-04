@@ -1,6 +1,16 @@
 #include "io.h"
 #include <stdint.h>
 
+uint32_t inl(uint16_t port) {
+    uint32_t r;
+    asm("inl %1, %0" : "=a" (r) : "dN" (port));
+    return r;
+}
+
+void outl(uint16_t port, uint32_t data) {
+    asm("outl %1, %0" : : "dN" (port), "a" (data));
+}
+
 uint16_t inw(uint16_t port) {
     uint16_t r;
     asm("inw %1, %0" : "=a" (r) : "dN" (port));

@@ -27,19 +27,20 @@ typedef struct {
 } __attribute__((packed)) acpi_header_t;
 
 typedef struct {
-    acpi_header_t acpi_header;    // Standard ACPI table header
-    uint32_t rsdt_tags[];           // Pointer to ACPI data (methods, device objects, etc.)
-} __attribute__((packed)) rsdt_table_t;
-
-// FACP Table
-
-typedef struct {
   uint8_t AddressSpace;
   uint8_t BitWidth;
   uint8_t BitOffset;
   uint8_t AccessSize;
   uint64_t Address;
 } GenericAddressStructure_t;
+
+typedef struct {
+    acpi_header_t acpi_header;    // Standard ACPI table header
+    uint32_t rsdt_tags[];           // Pointer to ACPI data (methods, device objects, etc.)
+} __attribute__((packed)) rsdt_table_t;
+
+// FACP Table
+
 
 
 typedef struct {
@@ -200,13 +201,17 @@ typedef struct {
     uint8_t apic_entries[];     // APIC entries (specific to the platform)
 } __attribute__((packed)) madt_table_t;
 
-// HPET Table
+
+
+
+// HPET Table Structure
 typedef struct {
-    acpi_header_t header;       // ACPI table header
-    uint32_t hpet_address;      // Address of the HPET
-    uint8_t min_clock_tick;     // Minimum clock tick in 100ns units
-    uint8_t page_protection;    // Protection flags
-    uint16_t reserved;          // Reserved field
+    acpi_header_t header; // ACPI table header
+    uint32_t event_timer_block_id; // Hardware ID of the event timer block
+    GenericAddressStructure_t base_address; // Base address of the event timer block
+    uint8_t hpet_number;        // HPET sequence number
+    uint16_t minimum_tick;      // Minimum clock tick in periodic mode
+    uint8_t page_protection;    // Page protection and OEM attributes
 } __attribute__((packed)) hpet_table_t;
 
 // MCFG Table

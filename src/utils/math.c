@@ -1,6 +1,11 @@
 #include "math.h"
+#include "util.h"
+#include "glm.h"
 #include <stdint.h>
 
+uint32_t roundf(float number) {
+    return (number >= 0.0f) ? (int)(number + 0.5f) : (int)(number - 0.5f);
+}
 
 double fabs(double x) {
     return x < 0.0 ? -x : x;
@@ -26,6 +31,54 @@ double cos(double x) {
     return sin(x + PI / 2.0);
 }
 
+float sinf(float x) {
+    float result;
+    __asm__ __volatile__ (
+        "fld %1;"    // Load x onto the FPU stack
+        "fsin;"      // Compute sine of ST(0)
+        "fstp %0;"   // Store the result into result and pop the FPU stack
+        : "=m" (result)
+        : "m" (x)
+    );
+    return result;
+}
+
+
+float cosf(float x) {
+    float result;
+    __asm__ __volatile__ (
+        "fld %1;"    // Load x onto the FPU stack
+        "fcos;"      // Compute cosine of ST(0)
+        "fstp %0;"   // Store the result into result and pop the FPU stack
+        : "=m" (result)
+        : "m" (x)
+    );
+    return result;
+}
+
+float tanf(float x) {
+    x = fmod(x + PI, 2 * PI);
+    if (x < 0)
+        x += 2 * PI;
+    // Shift to range -PI to PI
+    x = x - PI;
+    float cos_x = cosf(x);
+
+    // Define a small threshold to check for values close to zero
+    const float epsilon = 1e-10;
+
+    if (fabs(cos_x) < epsilon) {
+        // Handle the case where cosine is too close to zero
+        if (sinf(x) > 0)
+            return 1000000;
+        else
+            return -1000000;
+    }
+
+    return sinf(x) / cos_x;
+}
+
+
 // black magic
 double pow(double x, double y) {
     double out;
@@ -45,4 +98,12 @@ double pow(double x, double y) {
             "fstp %%st(1);"
             "fmulp;" : "=t"(out) : "0"(x),"u"(y) : "st(1)" );
     return out;
+}
+
+uint16_Vector2_t convert_to_uint16_Vector2(Vector2 vec) {
+    uint16_Vector2_t u16v2 = {
+        (uint16_t)vec.x,
+        (uint16_t)vec.y,
+    };
+    return u16v2;
 }

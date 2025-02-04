@@ -1,10 +1,13 @@
 #include <stdint.h>
-#include <memory.h>
+#include <stddef.h>
+#include "memory.h"
 #include "multiboot2.h"
 #include "util.h"
 #include "math.h"
 #include "svga.h"
 #include "hal.h"
+#include "hpet.h"
+#include "glm.h"
 
 /*
 struct VbeInfoBlock {
@@ -26,15 +29,85 @@ void RenderFrame0() {
     } else if (fbo_com_gb.framebuffer_type == 1) { // DIRECT RGB  fbo_tag_gb->framebuffer_
         ALPHA_MASK = ~(convert_rgb_to_framebuffer(make_svga_color(0xFF, 0xFF, 0xFF)));
         uint32_t framebuffer_value = convert_rgb_to_framebuffer(make_svga_color(0x7F, 0x7F, 0x7F));
+        framebuffer_value |= ALPHA_MASK;
 
-        memset_pattern(fbo_com_gb.framebuffer_addr, &framebuffer_value, (fbo_com_gb.framebuffer_bpp|7)>>3, 
+        memset_pattern((void *)fbo_com_gb.framebuffer_addr, &framebuffer_value, (size_t)(fbo_com_gb.framebuffer_bpp|7)>>3, 
         (fbo_com_gb.framebuffer_width * fbo_com_gb.framebuffer_width * ((fbo_com_gb.framebuffer_bpp|7)>>3)));
         draw_filled_quad(make_svga_color(255, 255, 0), 
-        make_uint16_vector2(30, 20), 
-        make_uint16_vector2(fbo_com_gb.framebuffer_width-60, 20), 
-        make_uint16_vector2(fbo_com_gb.framebuffer_width-40, fbo_com_gb.framebuffer_height-40),
-        make_uint16_vector2(20, fbo_com_gb.framebuffer_height-40));
+        make_uint16_vector2(30, 20), // Top-Left
+        make_uint16_vector2(fbo_com_gb.framebuffer_width-30, 20), // Top-Right
+        make_uint16_vector2(fbo_com_gb.framebuffer_width-20, fbo_com_gb.framebuffer_height-20), // Bottom Right
+        make_uint16_vector2(20, fbo_com_gb.framebuffer_height-20)); // Bottom Left
     }
+}
+float rotation_speed = 0.4f, rotation_angle = 0.f, total_time_elapsed = 0.f;
+uint8_t rintir, gintig;
+
+void RenderStuff(float delta_time) {
+    // Function to rotate a 3D point around the X-axis
+    // Define the original vertices of the polygon
+    // Define the rotation speed (radians per second)
+
+    // Calculate the elapsed time //since the last frame
+    // total_time_elapsed = (uint32_t)(HPET_ReadCounter()&0x00000000FFFFFFFF)/(uint32_t)HPET_TPS;
+    
+    // rintir = (uint8_t)(roundf(((float)cosf(rotation_angle)+1.f)*125)&0x000000FF);
+    // gintig = (uint8_t)(roundf(((float)sinf(rotation_angle)+1.f)*125)&0x000000FF);
+
+    clear_screen(make_svga_color(0x7F, 0x7F, 0x7F));
+
+    // Update the rotation angle
+    rotation_angle += rotation_speed * delta_time * (float)PI;
+
+    // Ensure the angle stays within 0 to 2π radians
+    if (rotation_angle >= 2 * PI) {
+        rotation_angle -= 2 * PI;
+    }
+    
+    /*
+    uint16_Vector3_t vertices[4] = {
+        {20, 20, 0}, // Top-Left
+        {fbo_com_gb.framebuffer_width - 20, 20, 0}, // Top-Right
+        {fbo_com_gb.framebuffer_width - 20, fbo_com_gb.framebuffer_height - 20, 0}, // Bottom-Right
+        {20, fbo_com_gb.framebuffer_height - 20, 0} // Bottom-Left
+    };
+    */
+
+    Vector4 vertices[4] = {
+        { 1.f,  1.f, 0.f, 1.f}, // Top-Left
+        {-1.f,  1.f, 0.f, 1.f}, // Top-Right
+        {-1.f, -1.f, 0.f, 1.f}, // Bottom-Right
+        { 1.f, -1.f, 0.f, 1.f} // Bottom-Left
+    };
+
+    Transform transform = {
+        .Position = (Vector3){0.f,  0.f,  2.f},
+        .Rotation = (Vector3){0.f, rotation_angle, 0.f},
+        .Scale    = (Vector3){1.f, 1.f, 1.f}
+    };
+
+
+    
+    // Apply rotations and projection to each vertex
+    Vector2 transformed_vertices[4];
+    Matrix4x4 model_matrix = create_transform_matrix(&transform);
+    Matrix4x4 projection_matrix = create_perspective_matrix(90, (float)(fbo_com_gb.framebuffer_width / fbo_com_gb.framebuffer_height), 0.1f, 100.f);
+
+    // Combine the matrices: Projection * View * Model
+    Matrix4x4 mvp_matrix = multiply_matrices(&projection_matrix, &model_matrix);    
+    
+    for (int i = 0; i < 4; i++) {
+        transformed_vertices[i] = project_point(multiply_matrix_vector(&mvp_matrix, &vertices[i]), (Vector2){fbo_com_gb.framebuffer_width, fbo_com_gb.framebuffer_height});
+    }
+
+    // Render the transformed polygon
+    draw_filled_quad(
+        make_svga_color(255, 0, 0),
+        convert_to_uint16_Vector2(transformed_vertices[0]),
+        convert_to_uint16_Vector2(transformed_vertices[1]),
+        convert_to_uint16_Vector2(transformed_vertices[2]),
+        convert_to_uint16_Vector2(transformed_vertices[3])
+    );
 }
 
 void set_pixel(color_t color, uint16_Vector2_t pixel_position) {
@@ -151,4 +224,12 @@ void draw_filled_quad(color_t color, uint16_Vector2_t p1, uint16_Vector2_t p2,
             memset_pattern(line_start, &real_color, bytes_per_pixel, num_pixels * bytes_per_pixel);
         }
     }
+}
+
+void clear_screen(color_t color) {
+    uint32_t framebuffer_value = convert_rgb_to_framebuffer(color);
+    framebuffer_value |= ALPHA_MASK;
+
+    memset_pattern((void *)fbo_com_gb.framebuffer_addr, &framebuffer_value, (size_t)(fbo_com_gb.framebuffer_bpp|7)>>3, 
+    (fbo_com_gb.framebuffer_width * fbo_com_gb.framebuffer_width * ((fbo_com_gb.framebuffer_bpp|7)>>3)));
 }

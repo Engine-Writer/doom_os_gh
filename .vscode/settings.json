@@ -24,7 +24,9 @@
         "acpi.h": "c",
         "apic.h": "c",
         "pic_irq.h": "c",
-        "apic_irq.h": "c"
+        "apic_irq.h": "c",
+        "hpet.h": "c",
+        "paging.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

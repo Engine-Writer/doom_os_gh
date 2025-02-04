@@ -331,8 +331,8 @@ void acpi_parse_madt(madt_table_t *madt_table) {
 
 // Process the HPET table
 void acpi_parse_hpet(hpet_table_t *hpet_table) {
-    hpet_address = hpet_table->hpet_address;
-    min_clock_tick = hpet_table->min_clock_tick;
+    hpet_address = hpet_table->base_address.Address;
+    min_clock_tick = hpet_table->minimum_tick;
 
     hpet_data = hpet_table;
 

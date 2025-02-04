@@ -53,6 +53,23 @@ int8_t memcmp(const char *str1, const char *str2, size_t n) {
     return 0;  // Return 0 if strings are equal up to n characters
 }
 
+void *memmove(void *dst, const void *src, size_t n) {
+    // OK since we know that memcpy copies forwards
+    if (dst < src) {
+        return memcpy(dst, src, n);
+    }
+
+    uint8_t *d = dst;
+    const uint8_t *s = src;
+
+    for (size_t i = n; i > 0; i--) {
+        d[i - 1] = s[i - 1];
+    }
+
+    return dst;
+}
+
+
 void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_t *mmap_tag) {
     for (uint32_t i = 0; i < entry_count; i++) {
         multiboot_mmap_entry_t *entry_x = (multiboot_mmap_entry_t *)( entry+(i*(mmap_tag->entry_size)) );
@@ -306,6 +323,47 @@ void *memcalloc(size_t num, size_t size) {
     memset(ptr, 0, total_size);
     return ptr;
 }
+
+// Allocate a block of memory with a specified alignment
+void *mem_alloc_aligned(size_t size, size_t alignment) {
+    block_header_t *current = free_list;
+
+    // Ensure the size is aligned to the requested boundary
+    size = (size + alignment - 1) & ~(alignment - 1); // Round up to the nearest multiple of alignment
+
+    while (current->next != 0x0) {
+        // Check if the block is free and large enough
+        if (current->is_free && current->size >= size + alignment) {
+            // Calculate the aligned address
+            uint8_t *aligned_ptr = (uint8_t *)current + sizeof(block_header_t);
+            uintptr_t aligned_addr = (uintptr_t)aligned_ptr;
+            uintptr_t offset = (aligned_addr % alignment == 0) ? 0 : alignment - (aligned_addr % alignment);
+
+            aligned_ptr += offset; // Adjust the pointer to be aligned
+
+            // If the block is much larger than the requested size, split it
+            if (current->size > size + sizeof(block_header_t) + offset) {
+                block_header_t *new_block = (block_header_t *)(aligned_ptr + size);
+                new_block->size = current->size - size - sizeof(block_header_t) - offset;
+                new_block->is_free = 1;
+                new_block->next = current->next;
+
+                current->size = size + offset;
+                current->next = new_block;
+            }
+
+            // Mark the block as allocated
+            current->is_free = 0;
+            return aligned_ptr;
+        }
+
+        current = current->next;
+    }
+
+    // No suitable block found, return NULL (or error value)
+    return (void *)0xFFFFFFFF; 
+}
+
 
 uint32_t get_total_memory() {
     return total_mem;

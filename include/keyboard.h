@@ -178,5 +178,6 @@ uint8_t keyboard_identify();
 void keyboard_handler(Registers *regs);
 void keyboard_pic_init();
 void keyboard_apic_init();
+void IOAPIC_ConfigureKeyboard();
 
 #endif // KEYBOARD_H

@@ -39,9 +39,11 @@ void memfree(void *ptr);
 void *memset(void *ptr, int value, size_t num);
 void *memcpy(void *dest, const void *src, size_t n);
 int8_t memcmp(const char *str1, const char *str2, size_t n);
+void *memmove(void *dst, const void *src, size_t n);
 
 void *memrealloc(void *ptr, size_t new_size);
 void *memcalloc(size_t num, size_t size);
+void *mem_alloc_aligned(size_t size, size_t alignment);
 
 // Function to calculate total system memory
 uint32_t get_total_memory();

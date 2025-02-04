@@ -2,6 +2,7 @@
 #define IO_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define CONCAT_IMPL(x, y) x##y
 #define CONCAT(x, y) CONCAT_IMPL(x, y)
@@ -50,6 +51,9 @@
 #define FLAG_UNSET(x, flag) x &= ~(flag)
 
 #define UNUSED_PORT 0x80
+
+uint32_t inl(uint16_t port);
+void outl(uint16_t port, uint32_t data);
 
 uint16_t inw(uint16_t port);
 void outw(uint16_t port, uint16_t data);

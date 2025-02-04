@@ -7,6 +7,9 @@
 #include "timer.h"
 #include "sound.h"
 #include "util.h"
+#include "math.h"
+#include "hpet.h"
+#include "svga.h"
 #include "gdt.h"
 #include "hal.h"
 #include "idt.h"
@@ -50,11 +53,13 @@ void kernel_main() {
     uint32_t ticks = 0;
     
     // Infinite loop to keep the kernel running
+    uint64_t hpet_tick_old = HPET_ReadCounter();
+    uint64_t hpet_tick_current = 0;
+    uint64_t tick_hpet_start_tick = HPET_ReadCounter();
     while (true) {
-        sound_play_frequency(220);
-        ticks = timer_ticks;
-        while (timer_ticks-ticks > 10) {
-            iowait();
-        }
+        hpet_tick_current = HPET_ReadCounter(); // How many ticks rn
+        RenderStuff( ( (uint32_t)(hpet_tick_current - hpet_tick_old) )/(uint32_t)HPET_TPS ); // send
+        hpet_tick_old = hpet_tick_current; // now the current tick count became old
+        HPET_Sleep(1/60);
     }
 }
