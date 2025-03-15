@@ -45,6 +45,7 @@ void iowait() {
     outb(UNUSED_PORT, 0);
 }
 
+
 void cpuGetMSR(uint32_t msr, uint32_t *eax, uint32_t *edx) {
     // Inline assembly to read from the MSR
     asm (
@@ -54,6 +55,7 @@ void cpuGetMSR(uint32_t msr, uint32_t *eax, uint32_t *edx) {
     );
 }
 
+
 void cpuSetMSR(uint32_t msr, uint32_t eax, uint32_t edx) {
     // Inline assembly to write to the MSR
     asm (
@@ -62,6 +64,7 @@ void cpuSetMSR(uint32_t msr, uint32_t eax, uint32_t edx) {
         : "c"(msr), "a"(eax), "d"(edx) // MSR, EAX (lower 32 bits), EDX (upper 32 bits)
     );
 }
+
 
 uint8_t apic_enablable() {
     uint32_t edx;

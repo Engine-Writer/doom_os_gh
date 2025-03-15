@@ -23,7 +23,7 @@ ISR%1:
 
 %endmacro
 
-%include "include/isrs_gen.inc"
+%include "/home/freedomuser/shared_folder/include/isrs_gen.inc"
 
 isr_common:
     pusha               ; pushes in order: eax, ecx, edx, ebx, esp, ebp, esi, edi

@@ -1,1 +1,1 @@
-qemu-system-i386 -cdrom ./bin/doom_os.iso -m 64 -boot d -M q35
+qemu-system-i386 -cdrom /home/freedomuser/shared_folder/bin/doom_os.iso -m 64 -boot d -M q35

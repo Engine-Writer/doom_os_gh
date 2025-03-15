@@ -21,6 +21,7 @@
 
 multiboot_tag_framebuffer_t *fbo_tag_gb;
 multiboot_tag_framebuffer_common_t fbo_com_gb;
+multiboot_tag_bootdev_t *bootdev_tag;
 
 uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     FPU_Initialize();
@@ -96,6 +97,12 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
                     vbe_tag->vbe_interface_seg);
                 break;
             }
+            case MULTIBOOT_TAG_TYPE_BOOTDEV: {
+                multiboot_tag_bootdev_t *boot_tag = (multiboot_tag_bootdev_t *)tag;
+                bootdev_tag = boot_tag;
+                
+                break;
+            }
             default: break;
         }
         tag = (multiboot_tag_t *)((uint8_t *)tag+((tag->size + 7)&~7)); // Adjusted to have (uint8_t *) and altered byte aligment
@@ -129,6 +136,11 @@ uint32_t HAL_Initialize(multiboot_info_t *multiboot_info_addr) {
     STI();
     terminal_writestring("STI-ed\n");
     HPET_Initialize();
-    RenderFrame0();
+    terminal_writestring("Doing Something\n");
+    pit_prepare_sleep(20000);
+    pit_perform_sleep();
+    // paging_init();
+    terminal_writestring("Something Done!!\n");
+    // RenderFrame0();
     return eflagerrs;
 }

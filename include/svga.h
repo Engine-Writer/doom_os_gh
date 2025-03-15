@@ -6,7 +6,7 @@
 #include "multiboot2.h"
 
 void RenderFrame0();
-void RenderStuff(float delta_time);
+void RenderStuff(uint32_t delta_time);
 
 void set_pixel(color_t color, uint16_Vector2_t pixel_position);
 void draw_line(color_t color, uint16_Vector2_t start, uint16_Vector2_t end);

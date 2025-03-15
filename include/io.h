@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #define CONCAT_IMPL(x, y) x##y
 #define CONCAT(x, y) CONCAT_IMPL(x, y)
@@ -61,6 +62,18 @@ void outw(uint16_t port, uint16_t data);
 uint8_t inb(uint16_t port);
 void outb(uint16_t port, uint8_t value);
 
+static inline void insw(uint16_t __port, void *__buf, unsigned long __n) {
+	asm("cld; rep; insw"
+			: "+D"(__buf), "+c"(__n)
+			: "d"(__port));
+}
+
+static inline void outsw(uint16_t __port, const void *__buf, unsigned long __n) {
+	asm("cld; rep; outsw"
+			: "+S"(__buf), "+c"(__n)
+			: "d"(__port));
+}
+
 void iowait();
 
 void cpuSetMSR(uint32_t msr, uint32_t eax, uint32_t edx);
@@ -68,5 +81,23 @@ void cpuGetMSR(uint32_t msr, uint32_t *eax, uint32_t *edx);
 uint8_t apic_enablable();
 
 extern void HALT();
+bool __attribute__((cdecl)) Disk_GetDriveParams(uint8_t drive,
+        uint8_t* driveTypeOut,
+        uint16_t* cylindersOut,
+        uint16_t* sectorsOut,
+        uint16_t* headsOut
+);
+
+bool __attribute__((cdecl)) Disk_Reset(uint8_t drive);
+
+bool __attribute__((cdecl)) Disk_Read(uint8_t drive,
+        uint16_t cylinder,
+        uint16_t sector,
+        uint16_t head,
+        uint8_t count,
+        void* lowerDataOut
+);
+
+extern char *read_buffer;
 
 #endif // IO_H

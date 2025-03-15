@@ -1,16 +1,19 @@
 [bits 32]
 STACK_SIZE equ 0x4000 ; Define stack size as 16 KB
 
-extern kernel_main
-extern _edata
-extern _end
+[extern kernel_main]
+[extern _edata]
+[extern _end]
 
-global multiboot_data
-global _start
-global HALT
+[global multiboot_data]
+
+[global _start]
+[global HALT]
+
+[global read_buffer]
 
 ; Multiboot2 header setup
-section .text
+section .multiboot
 _start:
     jmp full_start
 
@@ -58,14 +61,14 @@ ENTRY_TAG_END:
 
 align 8
 
-FBO_REQ_TAG_START:
-    dw 5           ; Tag type (5 for framebuffer)
-    dw 0           ; Flags
-    dd 20          ; Size of the tag
-    dd 640        ; Preferred width (e.g., 1024 pixels)
-    dd 480         ; Preferred height (e.g., 768 pixels)
-    dd 32          ; Preferred depth (e.g., 32 bits per pixel)
-FBO_REQ_TAG_END:
+;FBO_REQ_TAG_START:
+;    dw 5           ; Tag type (5 for framebuffer)
+;    dw 0           ; Flags
+;    dd 20          ; Size of the tag
+;    dd 640         ; Preferred width (e.g., 1024 pixels)
+;    dd 480         ; Preferred height (e.g., 768 pixels)
+;    dd 32          ; Preferred depth (e.g., 32 bits per pixel)
+;FBO_REQ_TAG_END:
 
 align 8
 
@@ -83,27 +86,35 @@ multiboot_end:
 align 8
 
 
-
+section .text
 full_start:
     cli
     
     mov [multiboot_data], eax
     mov [multiboot_data + 4], ebx
+
     
     ; Initialize the stack pointer
     lea esp, [stack + STACK_SIZE]
-
     ; Reset EFLAGS
     push dword 0
     popf
 
+continue_:
+
     ; Jump to the kernel's entry point
-    jmp kernel_main
+    call kernel_main
+    jmp HALT
+
+READCD_ISODATA:
+    ret
+    
 
 
 HALT:
     cli
     hlt
+    jmp HALT
 
 
 section .data
@@ -134,10 +145,29 @@ GDT_end:
 
 GDT_descriptor:
     dw GDT_end - GDT_start - 1      ; GDT size
-    dd GDT_start                   ; GDT base address
+    dd GDT_start                    ; GDT base address
+
+disk_packet:
+    db 0x10        ; Packet size (must be 16 bytes)
+    db 0           ; Reserved (always 0)
+    dw 1           ; Read 1 sector
+    dw 6420 ; Offset of buffer (low 16 bits)
+    dw 0           ; Segment of buffer
+    dq 16          ; LBA sector 16 (Primary Volume Descriptor)
+
 
 align 16
 section .bss
 multiboot_data:
-    resb 4
-    stack resb STACK_SIZE ; Reserve STACK_SIZE (16 KB) for the stack
+    resb 20
+stack: 
+    resb STACK_SIZE ; Reserve STACK_SIZE (16 KB) for the stack
+
+old_gdt:
+    resb 6
+
+old_idt:
+    resb 6
+
+read_buffer:
+    resb 512

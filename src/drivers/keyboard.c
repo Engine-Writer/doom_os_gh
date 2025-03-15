@@ -158,18 +158,18 @@ void keyboard_handler(Registers *regs) {
         keyboard.mods = BIT_SET(keyboard.mods, HIBIT(KEY_MOD_SCROLL_LOCK), KEY_IS_PRESS(scancode));
     }
 
-    bool was_on = keyboard.chars[KEY_CHAR(scancode)];
+    bool was_on = keyboard.chars[KEY_CHAR(scancode|keyboard.mods)];
 
     // Update key state
     keyboard.keys[(uint8_t)(scancode & 0x7F)] = KEY_IS_PRESS(scancode);
-    keyboard.chars[KEY_CHAR(scancode)] = KEY_IS_PRESS(scancode);
+    keyboard.chars[KEY_CHAR(scancode|keyboard.mods)] = KEY_IS_PRESS(scancode);
 
     if (keyboard.chars[KEY_CHAR(scancode)] && !was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
+        //terminal_printf("You pressed %c \n", KEY_CHAR(scancode|keyboard.mods));
     } else if (!keyboard.chars[KEY_CHAR(scancode)] && was_on && \
     (KEY_CHAR(scancode) >= 32 && KEY_CHAR(scancode) <= 126)) {
-        terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
+        //terminal_printf("You released %c \n", KEY_CHAR(scancode|keyboard.mods));
     }
 }
 

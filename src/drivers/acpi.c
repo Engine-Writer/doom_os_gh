@@ -43,7 +43,7 @@ void acpi_setup_event_enables() {
     // Write the updated value back to the PM1a control block.
     outw(acpi_PM1aControlBlock, pm1a_ctl);
     
-    // terminal_printf("PM1a Control Block configured for power button, thermal, charging, and shutdown events: 0x%x\n", pm1a_ctl);
+    terminal_printf("PM1a Control Block configured for power button, thermal, charging, and shutdown events: 0x%x\n", pm1a_ctl);
 }
 
 // ACPI-related variables (defined here)
@@ -86,6 +86,7 @@ uint8_t *S4BIOS_REQ;
 
 mcfg_allocation_t *PCIe_data;
 hpet_table_t      *hpet_data;
+madt_table_t      *apic_data;
 acpi_header_t     *rsdt_data;
 
 uint8_t *ssdt_entries;
@@ -130,7 +131,7 @@ void acpi_parse_dsdt(dsdt_table_t *dsdt_table) {
                 }
 
                 // Log the sleep state and its corresponding SLP_TYPx value
-                // terminal_printf("Found %s with sleep type: 0x%x\n", method_name, sleep_type);
+                terminal_printf("Found %s with sleep type: 0x%x\n", method_name, sleep_type);
                 
                 // Store the sleep types if necessary, depending on your system
                 switch (state) {
@@ -199,7 +200,7 @@ void acpi_parse_dsdt(dsdt_table_t *dsdt_table) {
                 }
             }
         } else {
-            // terminal_printf("Method %s not found in the DSDT table.\n", method_name);
+            terminal_printf("Method %s not found in the DSDT table.\n", method_name);
         }
     }
 }
@@ -223,20 +224,20 @@ void acpi_parse_facp(facp_table_t *facp_table) {
 
     facp_table_gb = facp_table;
     ACPI_ENABLE();
-    pit_prepare_sleep(100000);
+    pit_prepare_sleep(50000);
     pit_perform_sleep();
     while (inw(facp_table->PM1aControlBlock) & 1 == 0) {
         iowait();
     };
 
     if (memcmp((char *)dsdt_address, "DSDT", 4) == 0) {
-        acpi_parse_dsdt((dsdt_table_t *)dsdt_address);
+        //acpi_parse_dsdt((dsdt_table_t *)dsdt_address);
     }
     
-    // terminal_printf("Firmware Control Address: 0x%x\n", firmware_ctrl);
-    // terminal_printf("DSDT Address: 0x%x\n", dsdt_address);
-    // terminal_printf("SCI Interrupt Number: %d\n", sci_int);
-    // terminal_printf("PM Timer Address: 0x%x\n", pm_timer_addr);
+    terminal_printf("Firmware Control Address: 0x%x\n", firmware_ctrl);
+    terminal_printf("DSDT Address: 0x%x\n", dsdt_address);
+    terminal_printf("SCI Interrupt Number: %d\n", sci_int);
+    terminal_printf("PM Timer Address: 0x%x\n", pm_timer_addr);
 }
 
 // Process the APIC table
@@ -245,10 +246,11 @@ void acpi_parse_madt(madt_table_t *madt_table) {
     local_apic_address = madt_table->local_apic_address;
     apic_flags = madt_table->flags;
     apic_base = madt_table->local_apic_address;
+    apic_data = madt_table;
 
     // Print basic APIC information
-    // terminal_printf("Local APIC Address: 0x%x\n", local_apic_address);
-    // terminal_printf("Flags: 0x%x\n", apic_flags);
+    terminal_printf("Local APIC Address: 0x%x\n", local_apic_address);
+    terminal_printf("Flags: 0x%x\n", apic_flags);
 
     // Step 2: Get the start and end of the APIC entries array
     uint8_t *entry_ptr = madt_table->apic_entries;
@@ -261,63 +263,63 @@ void acpi_parse_madt(madt_table_t *madt_table) {
 
         // If length is invalid (to avoid infinite loops)
         if (length < 2) {
-            // terminal_printf("Error: Invalid MADT entry length %d\n", length);
+            terminal_printf("Error: Invalid MADT entry length %d\n", length);
             break;
         }
 
         switch (type) {
             case 0: { // Processor Local APIC
                 processor_local_apic_entry_t *entry = (processor_local_apic_entry_t *)entry_ptr;
-                // terminal_printf("CPU APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
-                //                entry->apic_id, entry->acpi_processor_id, entry->flags);
+                terminal_printf("CPU APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
+                                entry->apic_id, entry->acpi_processor_id, entry->flags);
                 break;
             }
             
             case 1: { // I/O APIC
                 ioapic_entry_t *entry = (ioapic_entry_t *)entry_ptr;
-                // terminal_printf("I/O APIC: ID=%d, Address=0x%x, Global IRQ Base=%d\n",
-                //                entry->apic_id, entry->ioapic_address, entry->global_irq_base);
+                terminal_printf("I/O APIC: ID=%d, Address=0x%x, Global IRQ Base=%d\n",
+                                entry->apic_id, entry->ioapic_address, entry->global_irq_base);
                 local_ioapic_address = entry->ioapic_address;
                 break;
             }
 
             case 2: { // Interrupt Source Override
                 ioapic_interrupt_source_override_entry_t *entry = (ioapic_interrupt_source_override_entry_t *)entry_ptr;
-                // terminal_printf("IRQ Override: Bus Source=%d, IRQ Source=%d, Global IRQ=%d, Flags=0x%x\n",
-                //                entry->bus_source, entry->irq_source, entry->global_irq, entry->flags);
+                terminal_printf("IRQ Override: Bus Source=%d, IRQ Source=%d, Global IRQ=%d, Flags=0x%x\n",
+                                entry->bus_source, entry->irq_source, entry->global_irq, entry->flags);
                 break;
             }
 
             case 3: { // Non-maskable Interrupt Source
                 ioapic_nmi_source_entry_t *entry = (ioapic_nmi_source_entry_t *)entry_ptr;
-                // terminal_printf("I/O APIC NMI: Source=%d, Global IRQ=%d, Flags=0x%x\n",
-                //                entry->nmi_source, entry->global_irq, entry->flags);
+                terminal_printf("I/O APIC NMI: Source=%d, Global IRQ=%d, Flags=0x%x\n",
+                                entry->nmi_source, entry->global_irq, entry->flags);
                 break;
             }
 
             case 4: { // Local APIC Non-maskable Interrupt
                 local_apic_nmi_entry_t *entry = (local_apic_nmi_entry_t *)entry_ptr;
-                // terminal_printf("Local APIC NMI: Processor ID=%d, LINT=%d, Flags=0x%x\n",
-                //                entry->acpi_processor_id, entry->lint, entry->flags);
+                terminal_printf("Local APIC NMI: Processor ID=%d, LINT=%d, Flags=0x%x\n",
+                                entry->acpi_processor_id, entry->lint, entry->flags);
                 break;
             }
 
             case 5: { // Local APIC Address Override (for 64-bit systems)
                 local_apic_address_override_entry_t *entry = (local_apic_address_override_entry_t *)entry_ptr;
-                // terminal_printf("Local APIC Address Override: New Address=0x%lx\n", entry->local_apic_address);
-                //local_apic_address = entry->local_apic_address; // Update address
+                terminal_printf("Local APIC Address Override: New Address=0x%lx\n", entry->local_apic_address);
+                local_apic_address = entry->local_apic_address; // Update address
                 break;
             }
 
             case 9: { // Processor Local x2APIC (for newer systems)
                 processor_local_x2apic_entry_t *entry = (processor_local_x2apic_entry_t *)entry_ptr;
-                // terminal_printf("CPU x2APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
-                //                entry->processor_x2apic_id, entry->acpi_id, entry->flags);
+                terminal_printf("CPU x2APIC: ID=%d, ACPI_ID=%d, Flags=0x%x\n",
+                                entry->processor_x2apic_id, entry->acpi_id, entry->flags);
                 break;
             }
 
             default: // Unknown or unhandled APIC entry type
-                // terminal_printf("Unknown APIC Entry: Type=%d, Length=%d\n", type, length);
+                terminal_printf("Unknown APIC Entry: Type=%d, Length=%d\n", type, length);
                 break;
         }
 
@@ -325,7 +327,7 @@ void acpi_parse_madt(madt_table_t *madt_table) {
         entry_ptr += length;
     }
 
-    // terminal_printf("MADT Parsing Completed.\n");
+    terminal_printf("MADT Parsing Completed.\n");
 }
 
 
@@ -346,7 +348,7 @@ void acpi_parse_mcfg(mcfg_table_t *mcfg_table) {
 
     PCIe_data = (mcfg_allocation_t *)memalloc(allocation_count * sizeof(mcfg_allocation_t));
     if (!PCIe_data) {
-        // terminal_printf("Failed to allocate memory for PCIe configuration entries.\n");
+        terminal_printf("Failed to allocate memory for PCIe configuration entries.\n");
         return;
     }
 
@@ -362,7 +364,7 @@ void acpi_parse_ssdt(ssdt_table_t *ssdt_table) {
     // Copy the SSDT entries from the table
     memcpy(ssdt_entries, ssdt_table->ssd_entries, ssdt_table->header.length - sizeof(acpi_header_t));
 
-    // terminal_printf("SSDT Table size %d\n", ssdt_table->header.length - sizeof(acpi_header_t));
+    terminal_printf("SSDT Table size %d\n", ssdt_table->header.length - sizeof(acpi_header_t));
     uint8_t *entry = ssdt_entries;
     while (entry < (uint8_t *)ssdt_table + ssdt_table->header.length) {
         // Parse each SSDT entry
@@ -379,7 +381,7 @@ void acpi_parse_rsdt(acpi_header_t *rsdt_table) {
     if (memcmp(header->signature, "RSDT", 4) != 0) {
         memcpy(charcharx, header->signature, 4);            
         charcharx[4] = '\0';  // Null-terminate the string
-        // terminal_printf("Invalid RSDT signature: %s\n", charcharx);
+        terminal_printf("Invalid RSDT signature: %s\n 0x%x", charcharx, memcmp(header->signature, "RSDT", 4));
         return;
     }
 
@@ -387,47 +389,106 @@ void acpi_parse_rsdt(acpi_header_t *rsdt_table) {
     uint32_t num_tables = (header->length - sizeof(acpi_header_t)) / sizeof(uint32_t);
     uint32_t *table_pointers = (uint32_t *)((char *)rsdt_table + sizeof(acpi_header_t));
 
-    // terminal_printf("Found %d ACPI tables in RSDT\n", num_tables);
+    terminal_printf("Found %d ACPI tables in RSDT\n", num_tables);
 
     // Process each table pointer
     for (uint32_t i = 0; i < num_tables; ++i) {
         uint32_t table_address = table_pointers[i];
-        // terminal_printf("Table %d: Address=0x%x\n", i, table_address);
 
         acpi_header_t *table_header = (acpi_header_t *)table_address;
 
         if (memcmp(table_header->signature, "DSDT", 4) == 0) {
-            // terminal_printf("Found DSDT table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found DSDT table %d, Address=0x%x\n", i, table_address);
         } else if (memcmp(table_header->signature, "FACP", 4) == 0) {
-            // terminal_printf("Found FACP table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found FACP table %d, Address=0x%x\n", i, table_address);
             facp_table_t *facp_table = (facp_table_t *)table_address;
             acpi_parse_facp(facp_table);
         } else if (memcmp(table_header->signature, "APIC", 4) == 0) {
-            // terminal_printf("Found MADT table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found MADT table %d, Address=0x%x\n", i, table_address);
             madt_table_t *apic_table = (madt_table_t *)table_address;
             acpi_parse_madt(apic_table);
         } else if (memcmp(table_header->signature, "HPET", 4) == 0) {
-            // terminal_printf("Found HPET table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found HPET table %d, Address=0x%x\n", i, table_address);
             hpet_table_t *hpet_table = (hpet_table_t *)table_address;
             acpi_parse_hpet(hpet_table);
         } else if (memcmp(table_header->signature, "MCFG", 4) == 0) {
-            // terminal_printf("Found MCFG table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found MCFG table %d, Address=0x%x\n", i, table_address);
             mcfg_table_t *mcfg_table = (mcfg_table_t *)table_address;
             acpi_parse_mcfg(mcfg_table);
         } else if (memcmp(table_header->signature, "SSDT", 4) == 0) {
-            // terminal_printf("Found SSDT table %d, Address=0x%x\n", i, table_address);
+            terminal_printf("Found SSDT table %d, Address=0x%x\n", i, table_address);
             ssdt_table_t *ssdt_table = (ssdt_table_t *)table_address;
             acpi_parse_ssdt(ssdt_table);
         } else {
             memcpy(charcharx, table_header->signature, 4);            
             charcharx[4] = '\0';  // Null-terminate the string
-            // terminal_printf("Unknown ACPI table: %s\n", charcharx);
+            terminal_printf("Unknown ACPI table: %s\n", charcharx);
+        }
+    }
+}
+
+// Main RSDT parsing function
+void acpi_parse_xsdt(acpi_header_t *xsdt_table) {
+    acpi_header_t *header = (acpi_header_t *)xsdt_table;
+    char charcharx[5];
+
+    // Verify the signature
+    if (memcmp(header->signature, "XSDT", 4) != 0) {
+        memcpy(charcharx, header->signature, 4);            
+        charcharx[4] = '\0';  // Null-terminate the string
+        terminal_printf("Invalid XSDT signature: %s\n", charcharx);
+        return;
+    }
+
+    // Extract the list of table pointers
+    uint32_t num_tables = (header->length - sizeof(acpi_header_t)) / sizeof(uint32_t);
+    uint32_t *table_pointers = (uint32_t *)((char *)xsdt_table + sizeof(acpi_header_t));
+
+    terminal_printf("Found %d ACPI tables in RSDT\n", num_tables);
+
+    // Process each table pointer
+    for (uint64_t i = 0; i < num_tables; ++i) {
+        uint32_t table_address = table_pointers[i]&0x00000000FFFFFFFF;
+
+        acpi_header_t *table_header = (acpi_header_t *)table_address;
+
+        if (memcmp(table_header->signature, "DSDT", 4) == 0) {
+            terminal_printf("Found DSDT table %d, Address=0x%x\n", i, table_address);
+        } else if (memcmp(table_header->signature, "FACP", 4) == 0) {
+            terminal_printf("Found FACP table %d, Address=0x%x\n", i, table_address);
+            facp_table_t *facp_table = (facp_table_t *)table_address;
+            acpi_parse_facp(facp_table);
+        } else if (memcmp(table_header->signature, "APIC", 4) == 0) {
+            terminal_printf("Found MADT table %d, Address=0x%x\n", i, table_address);
+            madt_table_t *apic_table = (madt_table_t *)table_address;
+            acpi_parse_madt(apic_table);
+        } else if (memcmp(table_header->signature, "HPET", 4) == 0) {
+            terminal_printf("Found HPET table %d, Address=0x%x\n", i, table_address);
+            hpet_table_t *hpet_table = (hpet_table_t *)table_address;
+            acpi_parse_hpet(hpet_table);
+        } else if (memcmp(table_header->signature, "MCFG", 4) == 0) {
+            terminal_printf("Found MCFG table %d, Address=0x%x\n", i, table_address);
+            mcfg_table_t *mcfg_table = (mcfg_table_t *)table_address;
+            acpi_parse_mcfg(mcfg_table);
+        } else if (memcmp(table_header->signature, "SSDT", 4) == 0) {
+            terminal_printf("Found SSDT table %d, Address=0x%x\n", i, table_address);
+            ssdt_table_t *ssdt_table = (ssdt_table_t *)table_address;
+            acpi_parse_ssdt(ssdt_table);
+        } else {
+            memcpy(charcharx, table_header->signature, 4);            
+            charcharx[4] = '\0';  // Null-terminate the string
+            terminal_printf("Unknown ACPI table: %s\n", charcharx);
         }
     }
 }
 
 void acpi_init(acpi_header_t *rsdt_table) {
-    acpi_parse_rsdt(rsdt_table);
+    if (memcmp(rsdt_table->signature, "XSDT", 4) == 0) { // well the name lied
+        acpi_parse_xsdt(rsdt_table);
+
+    } else if (memcmp(rsdt_table->signature, "RSDT", 4) == 0) { // well the name lied
+        acpi_parse_rsdt(rsdt_table);
+    }
     rsdt_data = rsdt_table;
 }
 
@@ -435,7 +496,7 @@ void sci_apic_init() {
     APIC_IRQ_RegisterHandler(sci_int, (IRQHandler)acpi_sci_handler);
     IOAPIC_ConfigureSCI();
     acpi_setup_event_enables();
-    // terminal_printf("SCI configuration complete! 0x%x\n", sci_int);
+    terminal_printf("SCI configuration complete! 0x%x\n", sci_int);
     // Read the EC status register
     uint8_t status = inb(EC_SC);
 
@@ -454,7 +515,7 @@ void sci_apic_init() {
         uint8_t event_code = inb(EC_DATA);
 
         // Process the event code as needed
-        // terminal_printf("EC Event Code: 0x%x\n", event_code);
+        terminal_printf("EC Event Code: 0x%x\n", event_code);
     }
 }
 
@@ -478,7 +539,7 @@ void acpi_sci_handler(Registers *regs) {
         uint8_t event_code = inb(EC_DATA);
 
         // Process the event code as needed
-        // terminal_printf("EC Event Code: 0x%x\n", event_code);
+        terminal_printf("EC Event Code: 0x%x\n", event_code);
     }
 }
 
@@ -496,7 +557,7 @@ void IOAPIC_ConfigureSCI() {
     entry_low &= ~0x00000700;  // Reset trig flag
     entry_low |= APIC_DELIVERY_MODE_FIXED;  // Fixed delivery mode
     entry_low |= (1 << 15);  // Level-triggered (bit 15 = 1 for level)
-    entry_low &= ~(1 << 13);  // Active high polarity (bit 13 = 0 for high)
+    entry_low |= (1 << 13);  // Active low polarity (bit 13 = 1 for low)
     entry_low &= ~(1 << 16); // Enable interrupt (bit 16 = 0)
 
     // Configure upper 32-bit redirection entry (destination field)
@@ -507,7 +568,7 @@ void IOAPIC_ConfigureSCI() {
     APIC_WriteIO(0x10 + (sci_int * 2), entry_low);       // Write lower 32 bits
     APIC_WriteIO(0x10 + (sci_int * 2) + 1, entry_high);  // Write upper 32 bits
 
-    // terminal_printf("Configured IOAPIC for IRQ9 (SCI Interrupt) at 0x%x\n", apic_io_base);
+    terminal_printf("Configured IOAPIC for IRQ9 (SCI Interrupt) at 0x%x\n", apic_io_base);
 }
 
 void acpiPowerOff(void) {

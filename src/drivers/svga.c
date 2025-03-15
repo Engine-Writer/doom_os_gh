@@ -23,7 +23,16 @@ struct VbeInfoBlock {
 
 uint32_t ALPHA_MASK;
 
+Vector4 vertices[4] = {
+    { 1.f,  1.f, 0.f, 1.f}, // Top-Left
+    {-1.f,  1.f, 0.f, 1.f}, // Top-Right
+    {-1.f, -1.f, 0.f, 1.f}, // Bottom-Right
+    { 1.f, -1.f, 0.f, 1.f} // Bottom-Left
+};
+Matrix4x4 projection_matrix;
+
 void RenderFrame0() {
+    projection_matrix = create_perspective_matrix(90, (float)(fbo_com_gb.framebuffer_width / fbo_com_gb.framebuffer_height), 0.1f, 100.f);
     if (fbo_com_gb.framebuffer_type == 0) { // INDEXED RGB
 
     } else if (fbo_com_gb.framebuffer_type == 1) { // DIRECT RGB  fbo_tag_gb->framebuffer_
@@ -43,13 +52,13 @@ void RenderFrame0() {
 float rotation_speed = 0.4f, rotation_angle = 0.f, total_time_elapsed = 0.f;
 uint8_t rintir, gintig;
 
-void RenderStuff(float delta_time) {
+void RenderStuff(uint32_t delta_time) {
     // Function to rotate a 3D point around the X-axis
     // Define the original vertices of the polygon
     // Define the rotation speed (radians per second)
 
     // Calculate the elapsed time //since the last frame
-    // total_time_elapsed = (uint32_t)(HPET_ReadCounter()&0x00000000FFFFFFFF)/(uint32_t)HPET_TPS;
+    total_time_elapsed = (uint32_t)(HPET_ReadCounter()&0x00000000FFFFFFFF)/(uint32_t)HPET_TPS;
     
     // rintir = (uint8_t)(roundf(((float)cosf(rotation_angle)+1.f)*125)&0x000000FF);
     // gintig = (uint8_t)(roundf(((float)sinf(rotation_angle)+1.f)*125)&0x000000FF);
@@ -57,7 +66,7 @@ void RenderStuff(float delta_time) {
     clear_screen(make_svga_color(0x7F, 0x7F, 0x7F));
 
     // Update the rotation angle
-    rotation_angle += rotation_speed * delta_time * (float)PI;
+    rotation_angle += (float)(rotation_speed * delta_time * (float)PI)/(uint32_t)HPET_FREQ;
 
     // Ensure the angle stays within 0 to 2π radians
     if (rotation_angle >= 2 * PI) {
@@ -73,16 +82,10 @@ void RenderStuff(float delta_time) {
     };
     */
 
-    Vector4 vertices[4] = {
-        { 1.f,  1.f, 0.f, 1.f}, // Top-Left
-        {-1.f,  1.f, 0.f, 1.f}, // Top-Right
-        {-1.f, -1.f, 0.f, 1.f}, // Bottom-Right
-        { 1.f, -1.f, 0.f, 1.f} // Bottom-Left
-    };
 
     Transform transform = {
-        .Position = (Vector3){0.f,  0.f,  2.f},
-        .Rotation = (Vector3){0.f, rotation_angle, 0.f},
+        .Position = (Vector3){0.f,  0.f, 1.f},
+        .Rotation = (Vector3){0.f, 0.f, 0.f},
         .Scale    = (Vector3){1.f, 1.f, 1.f}
     };
 
@@ -91,8 +94,6 @@ void RenderStuff(float delta_time) {
     // Apply rotations and projection to each vertex
     Vector2 transformed_vertices[4];
     Matrix4x4 model_matrix = create_transform_matrix(&transform);
-    Matrix4x4 projection_matrix = create_perspective_matrix(90, (float)(fbo_com_gb.framebuffer_width / fbo_com_gb.framebuffer_height), 0.1f, 100.f);
-
     // Combine the matrices: Projection * View * Model
     Matrix4x4 mvp_matrix = multiply_matrices(&projection_matrix, &model_matrix);    
     
@@ -102,7 +103,7 @@ void RenderStuff(float delta_time) {
 
     // Render the transformed polygon
     draw_filled_quad(
-        make_svga_color(255, 0, 0),
+        make_svga_color((uint8_t)roundf(fmodf((float)(delta_time*255*24), 256.f) /* /((float)PI*2.f) */), 0, 0),
         convert_to_uint16_Vector2(transformed_vertices[0]),
         convert_to_uint16_Vector2(transformed_vertices[1]),
         convert_to_uint16_Vector2(transformed_vertices[2]),

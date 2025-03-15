@@ -14,9 +14,9 @@ LD = 'i386-elf-ld'
 ASM = 'nasm'
 
 # Compiler flags
-CFLAGS = ['-ffreestanding', '-m32', '-g', '-I', '/home/freedomuser/shared_folder/include']  # Now a list of separate flags
-ASFLAGS = '-f elf32'
-LDFLAGS = '-T/home/freedomuser/shared_folder/linker.ld'
+CFLAGS = ['-ffreestanding', '-m32', '-O2', '-g', '-I', '/home/freedomuser/shared_folder/include']  # Now a list of separate flags
+ASFLAGS = '-O2 -f elf32'
+LDFLAGS = '-T/home/freedomuser/shared_folder/linker.ld -O2'
 
 # Source files
 ASM_SOURCES = []
@@ -49,11 +49,13 @@ def move_element(lst:list[str], value:str, index:int):
         print(f"Invalid position {index}. List size: {len(lst)}")
 
 
-def get_sources() -> list[str]:
-    """Recursively get all source files (.asm and .c)"""
+def get_sources() -> tuple[list[str], list[str]]:
+    """Recursively get all source files (.asm and .c) while ignoring directories starting with '.'."""
     asm_files = []
     c_files = []
-    for root, _, files in os.walk(SRC_DIR):
+    for root, dirs, files in os.walk(SRC_DIR):
+        # Modify dirs in-place to skip any directory that starts with a dot
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
         for file in files:
             if file.endswith('.asm'):
                 asm_files.append(os.path.abspath(os.path.join(root, file)))
@@ -61,12 +63,20 @@ def get_sources() -> list[str]:
                 c_files.append(os.path.abspath(os.path.join(root, file)))
     return asm_files, c_files
 
+
 def run_command(command):
     """Helper function to run a shell command with modified environment"""
-    print(f"Running: {' '.join(command)}")
-    env = os.environ.copy()  # Copy the current environment
-    env['PATH'] = f"{env['PATH']}:{I386_ELF_GCC_PATH}"  # Add custom path
-    subprocess.check_call(command, env=env)
+    env = os.environ.copy()
+    env['PATH'] = f"{env['PATH']}:{I386_ELF_GCC_PATH}"
+    tcmd = ''
+    for cmd in command:
+        try:
+            tmpx = cmd[1][1]
+            tcmd = f"{tcmd} {' '.join(cmd)}"
+        except:
+            tcmd = f"{tcmd} {cmd}"
+    print(f"Running: {tcmd}")
+    subprocess.run(tcmd, shell=True, env=env)
 
 def build_asm():
     """Compile the ASM files"""

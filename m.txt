@@ -15,3 +15,18 @@ Traceback (most recent call last):
     raise CalledProcessError(retcode, cmd)
 subprocess.CalledProcessError: Command '['i386-elf-ld', '-T/home/freedomuser/shared_folder/linker.ld', '-o', '/home/freedomuser/shared_folder/bin/doom_os.elf', '/home/freedomuser/shared_folder/bin/grub_entry.asm.o', '/home/freedomuser/shared_folder/bin/gdt.asm.o', '/home/freedomuser/shared_folder/bin/idt.asm.o', '/home/freedomuser/shared_folder/bin/isr.asm.o', '/home/freedomuser/shared_folder/bin/kernel.c.o', '/home/freedomuser/shared_folder/bin/gdt.c.o', '/home/freedomuser/shared_folder/bin/memory.c.o', '/home/freedomuser/shared_folder/bin/hal.c.o', '/home/freedomuser/shared_folder/bin/io.c.o', '/home/freedomuser/shared_folder/bin/terminal.c.o', '/home/freedomuser/shared_folder/bin/idt.c.o', '/home/freedomuser/shared_folder/bin/irq.c.o', '/home/freedomuser/shared_folder/bin/isr.c.o', '/home/freedomuser/shared_folder/bin/isrs_gen.c.o', '/home/freedomuser/shared_folder/bin/keyboard.c.o', '/home/freedomuser/shared_folder/bin/pic.c.o', '/home/freedomuser/shared_folder/bin/sound.c.o', '/home/freedomuser/shared_folder/bin/timer.c.o', '/home/freedomuser/shared_folder/bin/util.c.o']' returned non-zero exit status 1.
 freedomuser@freedom:~/shared_folder$ 
+
+Running: i386-elf-gcc -ffreestanding -m32 -g -I /home/freedomuser/shared_folder/include -c /home/freedomuser/shared_folder/src/utils/glm.c -o /home/freedomuser/shared_folder/bin/glm.c.o
+/home/freedomuser/shared_folder/src/utils/glm.c: In function 'transform_vertex':
+/home/freedomuser/shared_folder/src/utils/glm.c:118:75: warning: passing argument 2 of 'multiply_matrix_vector' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  118 |     Vector4 transformed_vertex = multiply_matrix_vector(&combined_matrix, vertex);
+      |                                                                           ^~~~~~
+/home/freedomuser/shared_folder/src/utils/glm.c:5:55: note: expected 'Vector4 *' but argument is of type 'const Vector4 *'
+    5 | Vector4 multiply_matrix_vector(Matrix4x4 *m, Vector4 *v) {
+      |                                              ~~~~~~~~~^
+Running: i386-elf-gcc -ffreestanding -m32 -g -I /home/freedomuser/shared_folder/include -c /home/freedomuser/shared_folder/src/utils/math.c -o /home/freedomuser/shared_folder/bin/math.c.o
+/tmp/ccJUJOyR.s: Assembler messages:
+/tmp/ccJUJOyR.s:125: Warning: no instruction mnemonic suffix given and no register operands; using default for `test'
+/tmp/ccJUJOyR.s:153: Warning: no instruction mnemonic suffix given and no register operands; using default for `test'
+/tmp/ccJUJOyR.s:521: Warning: translating to `fld %st'
+/tmp/ccJUJOyR.s:552: Error: invalid instruction suffix for `fld'

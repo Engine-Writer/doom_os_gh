@@ -20,7 +20,7 @@
 #define HPET_TIMER_COMPARATOR        0x108
 #define HPET_ENABLE_BIT              0x1
 #define HPET_FREQ                    14318180
-#define HPET_TPS                     5000000
+#define HPET_TPS                     2500000
 
 #define FIXED_POINT_SCALE (1ULL << 20)
 

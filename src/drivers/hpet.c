@@ -36,9 +36,13 @@ void HPET_Initialize() {
         hpet_io_port = hpet_base_address;
         terminal_printf("HPET registers accessed via I/O port: 0x%x\n", (uint32_t)hpet_io_port);
     } else {
-        terminal_printf("Unsupported HPET AddressSpace: %d\n", space);
-        return;
+        hpet_virt_addr = (volatile void *)hpet_base_address;
+        if (!hpet_virt_addr) {
+            terminal_printf("Failed to map HPET registers!\n");
+            return;
+        }
     }
+    terminal_printf("HPET Address: 0x%x\n", hpet_base_address);
 
     // Enable HPET by setting the enable bit in the General Configuration Register.
     uint32_t cfg = HPET_ReadIO(HPET_GENERAL_CONFIGURATION);
@@ -48,11 +52,14 @@ void HPET_Initialize() {
     uint64_t c1, c2;
 
     // Configure Timer 0 for 10MHz operation (no interrupts)
-    HPET_ConfigureTimer(0, 200); // 100 ns period ~10MHz (adjust period_ns as needed)
-    pit_prepare_sleep(HPET_TPS); // 5 MHz
+    HPET_ConfigureTimer(0, HPET_TPS); // 5MHz (adjust freq as needed)
+    // pit_prepare_sleep(50000); // 20,000 ms (micro) or about 1 second
     c1 = HPET_ReadCounter();
     terminal_printf("Them timer at 0x%x \n", c1);
-    pit_perform_sleep();
+    for (int _=0;_<20;++_) {
+        pit_prepare_sleep(50000); // 50,000 ms (micro) or about 0.05 second
+        pit_perform_sleep();
+    }
     c2 = HPET_ReadCounter();
     terminal_printf("Now them timer at 0x%x \n", c2);
     terminal_printf("Elapsed:: 0x%x \n", c2-c1);
@@ -105,7 +112,7 @@ void HPET_ConfigureTimer(uint32_t timer_id, uint64_t freq_per) {
 
 void HPET_Sleep(float seconds) {
     // Calculate the number of ticks to wait
-    uint64_t ticks = (uint64_t)(seconds * HPET_TPS);
+    uint64_t ticks = (uint64_t)(seconds * HPET_FREQ);
 
     // Get the current counter value
     uint64_t start_time = HPET_ReadCounter();
@@ -118,7 +125,7 @@ void HPET_Sleep(float seconds) {
 
 void HPET_SleepNS(uint32_t ns) {
     // Calculate the number of ticks to wait
-    uint64_t ticks = (uint64_t)(ns * (HPET_TPS / 1000000000.0));
+    uint64_t ticks = (uint64_t)(ns * (HPET_FREQ / 1000000000.0));
 
     // Get the current counter value
     uint64_t start_time = HPET_ReadCounter();

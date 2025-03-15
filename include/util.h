@@ -78,6 +78,7 @@ int8_t strncmp(const char *str1, const char *str2, size_t n);
 size_t strlen(const char *str);
 size_t strlcat(char *dst, const char *src, size_t size);
 size_t strlcpy(char *dst, const char *src, size_t n);
+const char *strchr(const char *str, char chr);
 
 uint16_Vector3_t rotate_point_x(uint16_Vector3_t point, float angle);
 uint16_Vector3_t rotate_point_y(uint16_Vector3_t point, float angle);

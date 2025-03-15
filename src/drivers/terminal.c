@@ -12,10 +12,10 @@
 #define VGA_PORT_INDEX 0x3D4
 #define VGA_PORT_DATA  0x3D5
 
-static size_t terminal_row;
-static size_t terminal_column;
-static VGA_Color2 terminal_color;
-static uint16_t* terminal_buffer;
+size_t terminal_row;
+size_t terminal_column;
+VGA_Color2 terminal_color;
+volatile uint16_t* terminal_buffer;
 
 void terminal_initialize() {
     // cls = terminal_clear;  // Assign the terminal_clear function to cls
@@ -23,7 +23,7 @@ void terminal_initialize() {
     terminal_row = 0;
     terminal_column = 0;
     terminal_color = make_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK); // White on Black
-    terminal_buffer = VGA_MEMORY;
+    terminal_buffer = (volatile uint16_t*)VGA_MEMORY;
 
     for (size_t y = 0; y < VGA_HEIGHT; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {

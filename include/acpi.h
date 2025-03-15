@@ -289,6 +289,7 @@ void acpi_parse_hpet(hpet_table_t *hpet_table);
 void acpi_parse_mcfg(mcfg_table_t *mcfg_table);
 void acpi_parse_ssdt(ssdt_table_t *ssdt_table);
 void acpi_parse_rsdt(acpi_header_t *rsdt_table);
+void acpi_parse_xsdt(acpi_header_t *xsdt_table);
 void acpi_init(acpi_header_t *rsdt_table);
 void acpi_sci_handler(Registers *regs);
 void sci_apic_init();

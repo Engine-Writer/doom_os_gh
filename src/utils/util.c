@@ -115,3 +115,18 @@ size_t strlcpy(char *dst, const char *src, size_t n) {
 
     return s - src - 1;
 }
+
+const char* strchr(const char* str, char chr) {
+    if (str == NULL)
+        return NULL;
+
+    while (*str)
+    {
+        if (*str == chr)
+            return str;
+
+        ++str;
+    }
+
+    return NULL;
+}

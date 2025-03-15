@@ -191,6 +191,8 @@ void memory_initialize(uint32_t entry, uint32_t entry_count, multiboot_tag_mmap_
             (char *)&ntstr, acpi_addr->length, acpi_addr->revision);
             if (memcmp((char *)&ntstr, "RSDT", 4) == 0) {
                 acpi_init(acpi_addr);
+            } else if (memcmp((char *)&ntstr, "XSDT", 4) == 0) {
+                acpi_init(acpi_addr);
             }
         }
     }
@@ -326,42 +328,45 @@ void *memcalloc(size_t num, size_t size) {
 
 // Allocate a block of memory with a specified alignment
 void *mem_alloc_aligned(size_t size, size_t alignment) {
+    // Ensure alignment is a power of two
+    if ((alignment & (alignment - 1)) != 0 || alignment == 0) {
+        return (void *)0xFFFFFFFF; // Invalid alignment
+    }
+
     block_header_t *current = free_list;
 
-    // Ensure the size is aligned to the requested boundary
-    size = (size + alignment - 1) & ~(alignment - 1); // Round up to the nearest multiple of alignment
+    // Round up size to the nearest multiple of alignment
+    size_t aligned_size = (size + alignment - 1) & ~(alignment - 1);
 
-    while (current->next != 0x0) {
-        // Check if the block is free and large enough
-        if (current->is_free && current->size >= size + alignment) {
-            // Calculate the aligned address
-            uint8_t *aligned_ptr = (uint8_t *)current + sizeof(block_header_t);
-            uintptr_t aligned_addr = (uintptr_t)aligned_ptr;
-            uintptr_t offset = (aligned_addr % alignment == 0) ? 0 : alignment - (aligned_addr % alignment);
+    while (current != NULL) {
+        // Check if block is free and can accommodate worst-case offset + aligned_size
+        if (current->is_free && current->size >= aligned_size + (alignment - 1)) {
+            uint8_t *start_ptr = (uint8_t *)current + sizeof(block_header_t);
+            uintptr_t start_addr = (uintptr_t)start_ptr;
+            uintptr_t offset = (alignment - (start_addr % alignment)) % alignment;
+            uint8_t *aligned_ptr = start_ptr + offset;
 
-            aligned_ptr += offset; // Adjust the pointer to be aligned
+            size_t total_used = offset + aligned_size;
 
-            // If the block is much larger than the requested size, split it
-            if (current->size > size + sizeof(block_header_t) + offset) {
-                block_header_t *new_block = (block_header_t *)(aligned_ptr + size);
-                new_block->size = current->size - size - sizeof(block_header_t) - offset;
+            // Check if remaining space can be split into a new block
+            if (current->size >= total_used + sizeof(block_header_t) + 1) {
+                block_header_t *new_block = (block_header_t *)(aligned_ptr + aligned_size);
+                new_block->size = current->size - total_used - sizeof(block_header_t);
                 new_block->is_free = 1;
                 new_block->next = current->next;
 
-                current->size = size + offset;
+                current->size = total_used;
                 current->next = new_block;
             }
 
-            // Mark the block as allocated
             current->is_free = 0;
             return aligned_ptr;
         }
-
         current = current->next;
     }
 
-    // No suitable block found, return NULL (or error value)
-    return (void *)0xFFFFFFFF; 
+    // No suitable block found
+    return (void *)0xFFFFFFFF;
 }
 
 

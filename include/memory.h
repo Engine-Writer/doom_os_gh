@@ -16,6 +16,7 @@ extern uint32_t _end;
 typedef struct {
     uint32_t eax_reg;
     multiboot_info_t* ebx_reg;
+    uint32_t dl_reg;
 } __attribute__((packed)) multiboot_data_t;
 
 extern multiboot_data_t multiboot_data;

@@ -1,4 +1,6 @@
-const unsigned char font[][8] = {
+#include <stdint.h>
+
+const uint8_t font[][8] = {
     // ASCII 0 (NUL): Null
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 

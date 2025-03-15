@@ -26,7 +26,12 @@
         "pic_irq.h": "c",
         "apic_irq.h": "c",
         "hpet.h": "c",
-        "paging.h": "c"
+        "paging.h": "c",
+        "memory": "c",
+        "atapi.h": "c",
+        "stdio.h": "c",
+        "disk.h": "c",
+        "x86.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

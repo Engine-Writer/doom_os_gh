@@ -30,12 +30,14 @@ static inline uint32_t max32(int a, int b) {
 
 
 uint32_t roundf(float number);
-double fmod(double x, double m);
 double fabs(double x);
+double fmod(double x, double y);
+float fmodf(float x, float y);
 double sin(double x);
 double cos(double x);
 float sinf(float x);
 float cosf(float x);
+double tan(double x);
 float tanf(float x);
 double pow(double x, double y);
 uint16_Vector2_t convert_to_uint16_Vector2(Vector2 vec);

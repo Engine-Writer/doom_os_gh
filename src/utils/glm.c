@@ -62,8 +62,8 @@ Matrix4x4 scaling(float s_x, float s_y, float s_z) {
 
 // Function to create a rotation matrix around the X-axis
 Matrix4x4 rotation_x(float theta) {
-    float cos_theta = (float)cos(theta);
-    float sin_theta = (float)sin(theta);
+    float cos_theta = cosf(theta);
+    float sin_theta = sinf(theta);
     Matrix4x4 result = {{
         {1, 0,        0,         0},
         {0, cos_theta, -sin_theta, 0},
@@ -75,8 +75,8 @@ Matrix4x4 rotation_x(float theta) {
 
 // Function to create a rotation matrix around the Y-axis
 Matrix4x4 rotation_y(float theta) {
-    float cos_theta = (float)cos(theta);
-    float sin_theta = (float)sin(theta);
+    float cos_theta = cosf(theta);
+    float sin_theta = sinf(theta);
     Matrix4x4 result = {{
         {cos_theta,  0, sin_theta, 0},
         {0,          1, 0,         0},
@@ -88,8 +88,8 @@ Matrix4x4 rotation_y(float theta) {
 
 // Function to create a rotation matrix around the Z-axis
 Matrix4x4 rotation_z(float theta) {
-    float cos_theta = (float)cos(theta);
-    float sin_theta = (float)sin(theta);
+    float cos_theta = cosf(theta);
+    float sin_theta = sinf(theta);
     Matrix4x4 result = {{
         {cos_theta, -sin_theta, 0, 0},
         {sin_theta, cos_theta,  0, 0},

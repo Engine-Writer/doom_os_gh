@@ -60,6 +60,11 @@ void terminal_printf(const char *format, ...);
 void terminal_set_cursor_position(uint8_Vector2_t position);
 uint8_Vector2_t terminal_get_cursor_position();
 
+extern size_t terminal_row;
+extern size_t terminal_column;
+extern VGA_Color2 terminal_color;
+extern volatile uint16_t* terminal_buffer;
+
 //extern void (*cls)(VGA_Color2 color);
 //extern void (*printf)(const char *format, ...);
 
